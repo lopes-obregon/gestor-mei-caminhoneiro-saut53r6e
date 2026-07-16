@@ -13,6 +13,7 @@ import { createExpense } from '@/services/api'
 import { useToast } from '@/hooks/use-toast'
 import { useData } from '@/hooks/use-data'
 import { CATEGORY_LABELS, ExpenseCategory } from '@/types'
+import { DocumentScanner } from '@/components/forms/DocumentScanner'
 
 export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
   const { toast } = useToast()
@@ -27,6 +28,17 @@ export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
   })
 
   const isVariable = ['fuel', 'toll', 'food', 'helper'].includes(formData.category)
+
+  const handleExtracted = (data: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      amount: data.amount != null ? String(data.amount) : prev.amount,
+      date: data.date || prev.date,
+      category: data.category || prev.category,
+      description: data.description || prev.description,
+    }))
+    toast({ title: 'Dados preenchidos a partir do documento!' })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,6 +64,7 @@ export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+      <DocumentScanner type="expense" onExtracted={handleExtracted} />
       <div className="space-y-2">
         <Label>Categoria</Label>
         <Select

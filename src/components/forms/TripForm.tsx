@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select'
 import { createTrip } from '@/services/api'
 import { useToast } from '@/hooks/use-toast'
+import { DocumentScanner } from '@/components/forms/DocumentScanner'
 
 export function TripForm({ onSuccess }: { onSuccess: () => void }) {
   const { toast } = useToast()
@@ -25,6 +26,21 @@ export function TripForm({ onSuccess }: { onSuccess: () => void }) {
     advance_value: '0',
     advance_type: 'none',
   })
+
+  const handleExtracted = (data: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      company: data.company || prev.company,
+      origin: data.origin || prev.origin,
+      destination: data.destination || prev.destination,
+      date: data.date || prev.date,
+      distance_km: data.distance_km != null ? String(data.distance_km) : prev.distance_km,
+      gross_value: data.gross_value != null ? String(data.gross_value) : prev.gross_value,
+      advance_value: data.advance_value != null ? String(data.advance_value) : prev.advance_value,
+      advance_type: data.advance_type || prev.advance_type,
+    }))
+    toast({ title: 'Dados preenchidos a partir do documento!' })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,6 +63,7 @@ export function TripForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+      <DocumentScanner type="trip" onExtracted={handleExtracted} />
       <div className="grid grid-cols-1 gap-4">
         <div className="space-y-2">
           <Label>Empresa / Cliente</Label>
