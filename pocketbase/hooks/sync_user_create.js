@@ -1,8 +1,10 @@
 onRecordAfterCreateSuccess((e) => {
-  const apiUrl = $secrets.get('EXTERNAL_SYSTEM_API_URL')
+  const defaultUrl =
+    'https://gestao-de-empresa-de-sistemas-e4fd0.shrd00.internal.goskip.dev/backend/v1/sync-users'
+  const apiUrl = $secrets.get('EXTERNAL_SYSTEM_API_URL') || defaultUrl
   const authToken = $secrets.get('EXTERNAL_SYSTEM_AUTH_TOKEN')
 
-  if (!apiUrl || !authToken) {
+  if (!authToken) {
     return e.next()
   }
 
@@ -17,7 +19,7 @@ onRecordAfterCreateSuccess((e) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: authToken,
+        Authorization: 'Bearer ' + authToken,
       },
       body: JSON.stringify({
         external_id: record.getString('external_id'),
@@ -28,7 +30,9 @@ onRecordAfterCreateSuccess((e) => {
       timeout: 15,
     })
   } catch (err) {
-    $app.logger().error('outgoing sync failed on user create', 'userId', record.id)
+    $app
+      .logger()
+      .error('outgoing sync failed on user create', 'userId', record.id, 'error', err.message || '')
   }
 
   return e.next()

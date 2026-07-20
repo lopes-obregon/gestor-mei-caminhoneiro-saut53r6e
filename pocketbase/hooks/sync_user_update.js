@@ -1,13 +1,26 @@
 onRecordAfterUpdateSuccess((e) => {
-  const apiUrl = $secrets.get('EXTERNAL_SYSTEM_API_URL')
+  const defaultUrl =
+    'https://gestao-de-empresa-de-sistemas-e4fd0.shrd00.internal.goskip.dev/backend/v1/sync-users'
+  const apiUrl = $secrets.get('EXTERNAL_SYSTEM_API_URL') || defaultUrl
   const authToken = $secrets.get('EXTERNAL_SYSTEM_AUTH_TOKEN')
 
-  if (!apiUrl || !authToken) {
+  if (!authToken) {
     return e.next()
   }
 
   const record = e.record
   if (!record) {
+    return e.next()
+  }
+
+  const nameChanged = record.getString('name') !== record.original().getString('name')
+  const emailChanged = record.getString('email') !== record.original().getString('email')
+  const paymentStatusChanged =
+    record.getString('payment_status') !== record.original().getString('payment_status')
+  const externalIdChanged =
+    record.getString('external_id') !== record.original().getString('external_id')
+
+  if (!nameChanged && !emailChanged && !paymentStatusChanged && !externalIdChanged) {
     return e.next()
   }
 
@@ -17,7 +30,7 @@ onRecordAfterUpdateSuccess((e) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: authToken,
+        Authorization: 'Bearer ' + authToken,
       },
       body: JSON.stringify({
         external_id: record.getString('external_id'),
@@ -28,7 +41,9 @@ onRecordAfterUpdateSuccess((e) => {
       timeout: 15,
     })
   } catch (err) {
-    $app.logger().error('outgoing sync failed on user update', 'userId', record.id)
+    $app
+      .logger()
+      .error('outgoing sync failed on user update', 'userId', record.id, 'error', err.message || '')
   }
 
   return e.next()
