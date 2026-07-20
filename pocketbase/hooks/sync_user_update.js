@@ -20,7 +20,7 @@ onRecordAfterUpdateSuccess((e) => {
         Authorization: authToken,
       },
       body: JSON.stringify({
-        id: record.id,
+        external_id: record.getString('external_id'),
         name: record.getString('name'),
         email: record.getString('email'),
         payment_status: record.getString('payment_status'),

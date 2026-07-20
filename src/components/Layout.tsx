@@ -120,7 +120,7 @@ export default function Layout() {
 
   if (loading) return null
   if (!isAuthenticated) return <Navigate to="/login" />
-  if (user?.payment_status !== 'paid') return <Navigate to="/payment-required" />
+  if (user?.payment_status !== 'paid') return <Navigate to="/restricted-access" />
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">

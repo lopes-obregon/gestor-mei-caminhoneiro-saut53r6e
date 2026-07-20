@@ -13,7 +13,7 @@ import Trips from '@/pages/Trips'
 import Expenses from '@/pages/Expenses'
 import Reports from '@/pages/Reports'
 import NotFound from '@/pages/NotFound'
-import PaymentRequired from '@/pages/PaymentRequired'
+import RestrictedAccess from '@/pages/RestrictedAccess'
 
 const App = () => (
   <BrowserRouter>
@@ -24,7 +24,7 @@ const App = () => (
           <Sonner />
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/payment-required" element={<PaymentRequired />} />
+            <Route path="/restricted-access" element={<RestrictedAccess />} />
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
               <Route path="/trips" element={<Trips />} />
