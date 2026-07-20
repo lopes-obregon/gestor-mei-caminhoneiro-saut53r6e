@@ -28,7 +28,9 @@ export default function Login() {
       toast({
         variant: 'destructive',
         title: 'Erro de autenticação',
-        description: error.message || 'Verifique suas credenciais e tente novamente.',
+        description:
+          error.message ||
+          'Verifique suas credenciais e tente novamente. Ou entre em contato com o suporte da VL Soluções em IA.',
       })
     }
     setLoading(false)
