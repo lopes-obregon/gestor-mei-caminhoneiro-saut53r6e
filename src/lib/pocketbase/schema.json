@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T20:13:02.441Z",
+  "generatedAt": "2026-07-20T19:24:24.847Z",
   "collections": [
     {
       "name": "users",
@@ -37,6 +37,19 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "payment_status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["paid", "pending", "overdue"]
+        },
+        {
+          "name": "external_id",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -48,11 +61,11 @@
       "name": "trips",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && user_id = @request.auth.id",
-        "view": "@request.auth.id != '' && user_id = @request.auth.id",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != '' && user_id = @request.auth.id",
-        "delete": "@request.auth.id != '' && user_id = @request.auth.id"
+        "list": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "view": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "create": "@request.auth.id != '' && @request.auth.payment_status = \"paid\"",
+        "update": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "delete": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\""
       },
       "fields": [
         {
@@ -139,11 +152,11 @@
       "name": "expenses",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && user_id = @request.auth.id",
-        "view": "@request.auth.id != '' && user_id = @request.auth.id",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != '' && user_id = @request.auth.id",
-        "delete": "@request.auth.id != '' && user_id = @request.auth.id"
+        "list": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "view": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "create": "@request.auth.id != '' && @request.auth.payment_status = \"paid\"",
+        "update": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "delete": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\""
       },
       "fields": [
         {

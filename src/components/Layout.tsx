@@ -116,10 +116,11 @@ function QuickAdd() {
 }
 
 export default function Layout() {
-  const { isAuthenticated, loading, signOut } = useAuth()
+  const { isAuthenticated, loading, signOut, user } = useAuth()
 
   if (loading) return null
   if (!isAuthenticated) return <Navigate to="/login" />
+  if (user?.payment_status !== 'paid') return <Navigate to="/payment-required" />
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">

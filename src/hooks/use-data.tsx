@@ -20,13 +20,14 @@ export const useData = () => {
 }
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const [trips, setTrips] = useState<Trip[]>([])
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loadingData, setLoadingData] = useState(true)
 
   const loadData = useCallback(async () => {
     if (!isAuthenticated) return
+    if (user?.payment_status !== 'paid') return
     try {
       const [t, e] = await Promise.all([getTrips(), getExpenses()])
       setTrips(t)
@@ -36,7 +37,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoadingData(false)
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, user])
 
   useEffect(() => {
     if (isAuthenticated) {
