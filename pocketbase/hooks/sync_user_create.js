@@ -1,22 +1,22 @@
 onRecordAfterCreateSuccess((e) => {
   const baseUrl = $secrets.get('API_VL_LOCUCOES')
   //const authToken = $secrets.get('API_VL_LOCUCOES_AUTH_TOKEN')
-  console.log('baseUrl por console log:')
+  //console.log('baseUrl por console log:')
   //if (!baseUrl || !authToken)
   if (!baseUrl) {
     return e.next()
   }
-  console.log('passou 1')
+  //console.log('passou 1')
   const record = e.record
   if (!record) {
     return e.next()
   }
-  console.log('passou 2')
+  //console.log('passou 2')
 
   let url = baseUrl
   if (url.endsWith('/')) url = url.slice(0, -1)
   url = url + '/users'
-  console.log('url completa:' + url)
+  //console.log('url completa:' + url)
   try {
     $http.send({
       url: url,
