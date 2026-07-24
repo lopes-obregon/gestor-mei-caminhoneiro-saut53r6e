@@ -43,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   const signUp = async (name: string, email: string, password: string) => {
+    console.log('User:', name + ' ' + email)
     try {
       await pb.collection('users').create({ name, email, password, passwordConfirm: password })
       await pb.collection('users').authWithPassword(email, password)
