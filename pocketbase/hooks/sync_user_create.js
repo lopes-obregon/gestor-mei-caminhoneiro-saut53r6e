@@ -1,10 +1,8 @@
 onRecordAfterCreateSuccess((e) => {
-  const defaultUrl =
-    'https://gestao-de-empresa-de-sistemas-e4fd0.shrd00.internal.goskip.dev/backend/v1/sync-users'
-  const apiUrl = $secrets.get('EXTERNAL_SYSTEM_API_URL') || defaultUrl
-  const authToken = $secrets.get('EXTERNAL_SYSTEM_AUTH_TOKEN')
-
-  if (!authToken) {
+  const baseUrl = $secrets.get('API_VL_LOCUCOES')
+  const authToken = $secrets.get('API_VL_LOCUCOES_AUTH_TOKEN')
+  Console.log('baseUrl: ', baseUrl)
+  if (!baseUrl || !authToken) {
     return e.next()
   }
 
@@ -13,9 +11,13 @@ onRecordAfterCreateSuccess((e) => {
     return e.next()
   }
 
+  let url = baseUrl
+  if (url.endsWith('/')) url = url.slice(0, -1)
+  url = url + '/users'
+  console.log(url)
   try {
     $http.send({
-      url: apiUrl,
+      url: url,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

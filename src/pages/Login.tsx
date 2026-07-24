@@ -6,34 +6,75 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
-import { Truck } from 'lucide-react'
+import { checkUserSync } from '@/services/sync'
+import { cn } from '@/lib/utils'
+import { Truck, RefreshCw, AlertCircle, CheckCircle2, User } from 'lucide-react'
 
 export default function Login() {
   const { signIn, signUp, isAuthenticated } = useAuth()
   const { toast } = useToast()
   const [isLogin, setIsLogin] = useState(true)
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [nameError, setNameError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loginFailed, setLoginFailed] = useState(false)
+  const [checkingSync, setCheckingSync] = useState(false)
+  const [syncResult, setSyncResult] = useState('')
+  const [syncError, setSyncError] = useState(false)
 
   if (isAuthenticated) return <Navigate to="/" />
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    const action = isLogin ? signIn : signUp
-    const { error } = await action(email, password)
+    setLoginFailed(false)
+    setSyncResult('')
+
+    if (!isLogin) {
+      if (!name.trim()) {
+        setNameError('Nome é obrigatório')
+        setLoading(false)
+        return
+      }
+      setNameError('')
+    }
+
+    const { error } = isLogin
+      ? await signIn(email, password)
+      : await signUp(name.trim(), email, password)
 
     if (error) {
+      setLoginFailed(true)
       toast({
         variant: 'destructive',
         title: 'Erro de autenticação',
-        description:
-          error.message ||
-          'Verifique suas credenciais e tente novamente. Ou entre em contato com o suporte da VL Soluções em IA.',
+        description: error.message || 'Verifique suas credenciais e tente novamente.',
       })
     }
     setLoading(false)
+  }
+
+  const handleCheckSync = async () => {
+    setCheckingSync(true)
+    setSyncResult('')
+    setSyncError(false)
+    try {
+      const result = await checkUserSync(email)
+      if (result.synced && result.user) {
+        const userName = result.user.name || ''
+        const userStatus = result.user.payment_status || ''
+        setSyncResult(`Usuário sincronizado: ${userName} – ${userStatus}`)
+      } else {
+        setSyncResult('Usuário não encontrado no sistema externo. Contate o suporte.')
+        setSyncError(true)
+      }
+    } catch {
+      setSyncResult('Erro ao conectar com o sistema. Tente novamente mais tarde.')
+      setSyncError(true)
+    }
+    setCheckingSync(false)
   }
 
   return (
@@ -48,6 +89,27 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome completo</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value)
+                      if (nameError) setNameError('')
+                    }}
+                    placeholder="Seu nome completo"
+                    className={cn('pl-9', nameError && 'border-destructive')}
+                  />
+                </div>
+                {nameError && <p className="text-sm text-destructive">{nameError}</p>}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -75,11 +137,57 @@ export default function Login() {
               {loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Criar Conta'}
             </Button>
           </form>
+
+          {loginFailed && isLogin && (
+            <div className="mt-4 space-y-3 animate-fade-in-up">
+              <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
+                <span>Falha na autenticação. Deseja verificar a sincronização?</span>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={checkingSync || !email}
+                onClick={handleCheckSync}
+              >
+                {checkingSync ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Verificando...
+                  </>
+                ) : (
+                  'Verificar Sincronização'
+                )}
+              </Button>
+              {syncResult && (
+                <div
+                  className={cn(
+                    'flex items-start gap-2 text-sm p-3 rounded-lg animate-fade-in',
+                    syncError ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary',
+                  )}
+                >
+                  {syncError ? (
+                    <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />
+                  )}
+                  <span>{syncResult}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="mt-4 text-center">
             <button
               type="button"
               className="text-sm text-primary hover:underline"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin)
+                setLoginFailed(false)
+                setSyncResult('')
+                setNameError('')
+              }}
             >
               {isLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entre'}
             </button>
