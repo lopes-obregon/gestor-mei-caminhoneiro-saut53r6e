@@ -8,14 +8,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast'
 import { checkUserSync } from '@/services/sync'
 import { cn } from '@/lib/utils'
-import { Truck, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Truck, RefreshCw, AlertCircle, CheckCircle2, User } from 'lucide-react'
 
 export default function Login() {
   const { signIn, signUp, isAuthenticated } = useAuth()
   const { toast } = useToast()
   const [isLogin, setIsLogin] = useState(true)
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [nameError, setNameError] = useState('')
   const [loading, setLoading] = useState(false)
   const [loginFailed, setLoginFailed] = useState(false)
   const [checkingSync, setCheckingSync] = useState(false)
@@ -29,8 +31,19 @@ export default function Login() {
     setLoading(true)
     setLoginFailed(false)
     setSyncResult('')
-    const action = isLogin ? signIn : signUp
-    const { error } = await action(email, password)
+
+    if (!isLogin) {
+      if (!name.trim()) {
+        setNameError('Nome é obrigatório')
+        setLoading(false)
+        return
+      }
+      setNameError('')
+    }
+
+    const { error } = isLogin
+      ? await signIn(email, password)
+      : await signUp(name.trim(), email, password)
 
     if (error) {
       setLoginFailed(true)
@@ -76,6 +89,27 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome completo</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value)
+                      if (nameError) setNameError('')
+                    }}
+                    placeholder="Seu nome completo"
+                    className={cn('pl-9', nameError && 'border-destructive')}
+                  />
+                </div>
+                {nameError && <p className="text-sm text-destructive">{nameError}</p>}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -152,6 +186,7 @@ export default function Login() {
                 setIsLogin(!isLogin)
                 setLoginFailed(false)
                 setSyncResult('')
+                setNameError('')
               }}
             >
               {isLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entre'}
