@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-24T20:54:28.029Z",
+  "generatedAt": "2026-07-24T21:35:00.980Z",
   "collections": [
     {
       "name": "users",
@@ -29,21 +29,30 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         },
         {
           "name": "payment_status",
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["paid", "pending", "overdue"]
+          "selectValues": [
+            "paid",
+            "pending",
+            "overdue"
+          ]
         },
         {
           "name": "external_id",
@@ -122,28 +131,41 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["toll", "fuel", "cash", "none"]
+          "selectValues": [
+            "toll",
+            "fuel",
+            "cash",
+            "none"
+          ]
         },
         {
           "name": "status",
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["pending", "completed"]
+          "selectValues": [
+            "pending",
+            "completed"
+          ]
         },
         {
           "name": "created",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
       "indexes": []
@@ -216,14 +238,19 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
       "indexes": []
