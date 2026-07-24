@@ -1,16 +1,17 @@
 onRecordAfterCreateSuccess((e) => {
   const baseUrl = $secrets.get('API_VL_LOCUCOES')
   const authToken = $secrets.get('API_VL_LOCUCOES_AUTH_TOKEN')
-  console.log('baseUrl por console log')
-  $app.logger().info('baseUrl: ', baseUrl)
+  console.log('baseUrl por console log:')
+
   if (!baseUrl || !authToken) {
     return e.next()
   }
-
+  console.log('passou 1')
   const record = e.record
   if (!record) {
     return e.next()
   }
+  console.log('passou 2')
 
   let url = baseUrl
   if (url.endsWith('/')) url = url.slice(0, -1)
