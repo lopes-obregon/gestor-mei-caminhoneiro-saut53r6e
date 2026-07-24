@@ -1,7 +1,7 @@
 onRecordAfterCreateSuccess((e) => {
   const baseUrl = $secrets.get('API_VL_LOCUCOES')
   const authToken = $secrets.get('API_VL_LOCUCOES_AUTH_TOKEN')
-  //console.log('baseUrl: ', baseUrl)
+  console.log('baseUrl por console log')
   $app.logger().info('baseUrl: ', baseUrl)
   if (!baseUrl || !authToken) {
     return e.next()
@@ -15,7 +15,7 @@ onRecordAfterCreateSuccess((e) => {
   let url = baseUrl
   if (url.endsWith('/')) url = url.slice(0, -1)
   url = url + '/users'
-  console.log(url)
+  console.log('url completa:' + url)
   try {
     $http.send({
       url: url,
