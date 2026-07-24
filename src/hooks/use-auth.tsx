@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import pb from '@/lib/pocketbase/client'
-import { apiVl } from '@/services/api-vl'
 interface AuthContextType {
   user: any
   isAuthenticated: boolean
@@ -43,8 +42,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   const signUp = async (name: string, email: string, password: string) => {
-    console.log('User:', name + ' ' + email)
-    apiVl()
     try {
       await pb.collection('users').create({ name, email, password, passwordConfirm: password })
       await pb.collection('users').authWithPassword(email, password)
