@@ -1,4 +1,6 @@
 routerAdd('POST', '/backend/v1/sync-users', (e) => {
+  /*
+  Parte do token a inda não vou utilizar deixar para mais para frente
   const authToken = $secrets.get('EXTERNAL_SYSTEM_AUTH_TOKEN')
   if (!authToken) {
     return e.json(503, { error: 'sync not configured' })
@@ -8,7 +10,7 @@ routerAdd('POST', '/backend/v1/sync-users', (e) => {
   if (authHeader !== authToken) {
     return e.unauthorizedError('invalid auth token')
   }
-
+*/
   const body = e.requestInfo().body || {}
   const email = body.email || ''
   const externalId = body.external_id || ''
