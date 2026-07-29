@@ -128,7 +128,7 @@ export default function Layout() {
       <aside className="hidden md:flex flex-col w-64 border-r bg-card h-full">
         <div className="p-6">
           <h1 className="text-xl font-bold text-primary flex items-center gap-2">
-            <Truck className="h-6 w-6" /> Gestor MEI
+            <Truck className="h-6 w-6" /> Gestor Caminhoneiro
           </h1>
         </div>
         <nav className="flex-1 px-4 space-y-2">
