@@ -84,7 +84,7 @@ export default function Login() {
           <div className="mx-auto bg-primary/10 w-16 h-16 flex items-center justify-center rounded-full mb-2">
             <Truck className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold text-primary">Gestor Caminhoneiro</CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary">Gestor aminhoneiro</CardTitle>
           <CardDescription>Acesse sua conta para gerenciar seus fretes</CardDescription>
         </CardHeader>
         <CardContent>
