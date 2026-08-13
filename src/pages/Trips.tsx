@@ -12,9 +12,7 @@ export default function Trips() {
   const [openTrip, setOpenTrip] = useState<string | null>(null)
 
   const totalTripExpenses = (tripId: string) =>
-    expenses
-      .filter((e) => e.trip_id === tripId)
-      .reduce((acc, e) => acc + e.amount, 0)
+    expenses.filter((e) => e.trip_id === tripId).reduce((acc, e) => acc + e.amount, 0)
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -30,10 +28,7 @@ export default function Trips() {
           const isOpen = openTrip === trip.id
 
           return (
-            <Card
-              key={trip.id}
-              className="flex flex-col hover:border-primary/50 transition-colors"
-            >
+            <Card key={trip.id} className="flex flex-col hover:border-primary/50 transition-colors">
               <CardContent className="p-5 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-4">
                   <Badge
@@ -71,9 +66,7 @@ export default function Trips() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Despesas vinculadas:</span>
                     <span className="font-medium text-destructive">
-                      {tripExpenses.length > 0
-                        ? `-${formatMoney(totalExpenses)}`
-                        : 'Nenhuma'}
+                      {tripExpenses.length > 0 ? `-${formatMoney(totalExpenses)}` : 'Nenhuma'}
                     </span>
                   </div>
                   <div className="flex justify-between border-t border-border/50 pt-2 font-bold">
@@ -114,9 +107,7 @@ export default function Trips() {
                           className="flex items-center justify-between text-xs py-1.5 border-b border-border/30 last:border-0"
                         >
                           <div className="min-w-0">
-                            <p className="font-medium truncate">
-                              {CATEGORY_LABELS[exp.category]}
-                            </p>
+                            <p className="font-medium truncate">{CATEGORY_LABELS[exp.category]}</p>
                             <p className="text-muted-foreground">
                               {formatDate(exp.date)}
                               {exp.description && ` • ${exp.description}`}

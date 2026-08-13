@@ -12,6 +12,7 @@ import {
 import { createTrip } from '@/services/api'
 import { useToast } from '@/hooks/use-toast'
 import { DocumentScanner } from '@/components/forms/DocumentScanner'
+import { CityAutocomplete } from '@/components/forms/CityAutocomplete'
 
 export function TripForm({ onSuccess }: { onSuccess: () => void }) {
   const { toast } = useToast()
@@ -75,22 +76,18 @@ export function TripForm({ onSuccess }: { onSuccess: () => void }) {
           />
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-2">
-            <Label>Origem</Label>
-            <Input
-              required
-              value={formData.origin}
-              onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Destino</Label>
-            <Input
-              required
-              value={formData.destination}
-              onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
-            />
-          </div>
+          <CityAutocomplete
+            label="Origem"
+            required
+            value={formData.origin}
+            onChange={(v) => setFormData({ ...formData, origin: v })}
+          />
+          <CityAutocomplete
+            label="Destino"
+            required
+            value={formData.destination}
+            onChange={(v) => setFormData({ ...formData, destination: v })}
+          />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-2">

@@ -52,7 +52,9 @@ export default function Reports() {
             </div>
             <div className="p-4 bg-emerald-500/10 rounded-lg">
               <p className="text-sm font-medium text-emerald-700 mb-1">Rendimento Isento (92%)</p>
-              <p className="text-2xl font-bold text-emerald-600">{formatMoney(totalRevenue * 0.92)}</p>
+              <p className="text-2xl font-bold text-emerald-600">
+                {formatMoney(totalRevenue * 0.92)}
+              </p>
             </div>
           </div>
         </CardContent>
