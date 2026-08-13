@@ -14,10 +14,6 @@ export default function Reports() {
   const yearTrips = trips.filter((t) => new Date(t.date).getFullYear() === currentYear)
   const totalRevenue = yearTrips.reduce((acc, t) => acc + t.gross_value, 0)
 
-  // Rule for Transportador (8% Presumed Profit)
-  const tributavel = totalRevenue * 0.08
-  const isento = totalRevenue * 0.92
-
   // Chart Data preparation
   const yearExpenses = expenses.filter((e) => new Date(e.date).getFullYear() === currentYear)
   const expensesByCategory = yearExpenses.reduce(
@@ -47,7 +43,7 @@ export default function Reports() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
-          <div className="grid md:grid-cols-3 gap-6 text-center">
+          <div className="grid md:grid-cols-2 gap-6 text-center">
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm font-medium text-muted-foreground mb-1">
                 Faturamento Bruto Total
@@ -56,14 +52,7 @@ export default function Reports() {
             </div>
             <div className="p-4 bg-emerald-500/10 rounded-lg">
               <p className="text-sm font-medium text-emerald-700 mb-1">Rendimento Isento (92%)</p>
-              <p className="text-2xl font-bold text-emerald-600">{formatMoney(isento)}</p>
-            </div>
-            <div className="p-4 bg-orange-500/10 rounded-lg">
-              <p className="text-sm font-medium text-orange-700 mb-1">Rend. Tributável IRPF (8%)</p>
-              <p className="text-2xl font-bold text-orange-600">{formatMoney(tributavel)}</p>
-              <p className="text-[10px] mt-1 text-orange-600/70">
-                Presunção de Lucro Transportador
-              </p>
+              <p className="text-2xl font-bold text-emerald-600">{formatMoney(totalRevenue * 0.92)}</p>
             </div>
           </div>
         </CardContent>

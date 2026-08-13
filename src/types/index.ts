@@ -31,13 +31,16 @@ export type ExpenseCategory =
 export interface Expense {
   id: string
   user_id: string
-  trip_id?: string
+  trip_id: string
   category: ExpenseCategory
   amount: number
   description: string
   date: string
   created: string
   updated: string
+  expand?: {
+    trip_id?: Trip
+  }
 }
 
 export const CATEGORY_LABELS: Record<ExpenseCategory, string> = {

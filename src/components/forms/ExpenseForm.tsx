@@ -24,10 +24,8 @@ export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
     amount: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
-    trip_id: 'none',
+    trip_id: '',
   })
-
-  const isVariable = ['fuel', 'toll', 'food', 'helper'].includes(formData.category)
 
   const handleExtracted = (data: any) => {
     setFormData((prev) => ({
@@ -42,16 +40,25 @@ export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Impede o salvamento de despesas órfãs (sem viagem vinculada).
+    if (!formData.trip_id) {
+      toast({
+        variant: 'destructive',
+        title: 'Viagem obrigatória',
+        description: 'Selecione a viagem à qual esta despesa está vinculada.',
+      })
+      return
+    }
+
     setLoading(true)
     try {
-      const payload: any = {
+      const payload = {
         category: formData.category,
         amount: Number(formData.amount),
         description: formData.description,
         date: formData.date,
-      }
-      if (isVariable && formData.trip_id !== 'none') {
-        payload.trip_id = formData.trip_id
+        trip_id: formData.trip_id,
       }
       await createExpense(payload)
       toast({ title: 'Despesa registrada!' })
@@ -65,13 +72,39 @@ export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pt-4">
       <DocumentScanner type="expense" onExtracted={handleExtracted} />
+
+      <div className="space-y-2">
+        <Label>
+          Viagem <span className="text-destructive">*</span>
+        </Label>
+        <Select
+          value={formData.trip_id}
+          onValueChange={(v) => setFormData({ ...formData, trip_id: v })}
+          required
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione a viagem" />
+          </SelectTrigger>
+          <SelectContent>
+            {trips.map((t) => (
+              <SelectItem key={t.id} value={t.id}>
+                {t.origin} ➔ {t.destination} ({new Date(t.date).toLocaleDateString('pt-BR')})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {trips.length === 0 && (
+          <p className="text-xs text-destructive">
+            Nenhuma viagem cadastrada. Registre uma viagem antes de lançar despesas.
+          </p>
+        )}
+      </div>
+
       <div className="space-y-2">
         <Label>Categoria</Label>
         <Select
           value={formData.category}
-          onValueChange={(v: ExpenseCategory) =>
-            setFormData({ ...formData, category: v, trip_id: 'none' })
-          }
+          onValueChange={(v: ExpenseCategory) => setFormData({ ...formData, category: v })}
         >
           <SelectTrigger>
             <SelectValue />
@@ -85,28 +118,6 @@ export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
           </SelectContent>
         </Select>
       </div>
-
-      {isVariable && (
-        <div className="space-y-2">
-          <Label>Vincular a uma Viagem (Opcional)</Label>
-          <Select
-            value={formData.trip_id}
-            onValueChange={(v) => setFormData({ ...formData, trip_id: v })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione a viagem" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Nenhuma</SelectItem>
-              {trips.slice(0, 10).map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.origin} ➔ {t.destination} ({new Date(t.date).toLocaleDateString('pt-BR')})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
 
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-2">

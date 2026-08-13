@@ -57,9 +57,13 @@ export default function Expenses() {
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {formatDate(exp.date)}
-                      {exp.expand?.trip_id && (
+                      {exp.expand?.trip_id ? (
+                        <span className="ml-2 text-primary font-medium">
+                          {exp.expand.trip_id.origin} ➔ {exp.expand.trip_id.destination}
+                        </span>
+                      ) : exp.trip_id ? (
                         <span className="ml-2 text-primary font-medium">Vinculado a viagem</span>
-                      )}
+                      ) : null}
                     </p>
                     {exp.description && (
                       <p className="text-xs text-muted-foreground mt-1 md:hidden">

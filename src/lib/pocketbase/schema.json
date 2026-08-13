@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-12T20:05:48.413Z",
+  "generatedAt": "2026-08-13T18:42:26.842Z",
   "collections": [
     {
       "name": "users",
@@ -191,7 +191,7 @@
         {
           "name": "trip_id",
           "type": "relation",
-          "required": false,
+          "required": true,
           "system": false,
           "collectionRef": "trips"
         },
