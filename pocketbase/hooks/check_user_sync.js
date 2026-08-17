@@ -1,6 +1,6 @@
 routerAdd('POST', '/backend/v1/check-user-sync', (e) => {
   const baseUrl = $secrets.get('API_VL_LOCUCOES')
-  const authToken = $secrets.get('API_VL_LOCUCOES_AUTH_TOKEN')
+  const authToken = $secrets.get('EXTERNAL_SYSTEM_AUTH_TOKEN')
 
   if (!baseUrl || !authToken) {
     return e.json(503, { error: 'sync not configured' })
