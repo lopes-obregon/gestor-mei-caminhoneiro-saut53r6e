@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,16 +9,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createExpense } from '@/services/api'
+import { createExpense, updateExpense } from '@/services/api'
 import { useToast } from '@/hooks/use-toast'
 import { useData } from '@/hooks/use-data'
-import { CATEGORY_LABELS, ExpenseCategory } from '@/types'
+import { CATEGORY_LABELS, ExpenseCategory, Expense } from '@/types'
 import { DocumentScanner } from '@/components/forms/DocumentScanner'
 
-export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
+interface ExpenseFormProps {
+  onSuccess: () => void
+  expense?: Expense | null
+}
+
+export function ExpenseForm({ onSuccess, expense }: ExpenseFormProps) {
   const { toast } = useToast()
   const { trips } = useData()
   const [loading, setLoading] = useState(false)
+  const isEditing = !!expense
   const [formData, setFormData] = useState({
     category: 'fuel' as ExpenseCategory,
     amount: '',
@@ -26,6 +32,19 @@ export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
     date: new Date().toISOString().split('T')[0],
     trip_id: '',
   })
+
+  // Preenche o formulário quando estiver editando
+  useEffect(() => {
+    if (expense) {
+      setFormData({
+        category: expense.category,
+        amount: String(expense.amount ?? ''),
+        description: expense.description ?? '',
+        date: expense.date ? expense.date.split('T')[0] : new Date().toISOString().split('T')[0],
+        trip_id: expense.trip_id ?? '',
+      })
+    }
+  }, [expense])
 
   const handleExtracted = (data: any) => {
     setFormData((prev) => ({
@@ -60,8 +79,13 @@ export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
         date: formData.date,
         trip_id: formData.trip_id,
       }
-      await createExpense(payload)
-      toast({ title: 'Despesa registrada!' })
+      if (isEditing && expense) {
+        await updateExpense(expense.id, payload)
+        toast({ title: 'Despesa atualizada!' })
+      } else {
+        await createExpense(payload)
+        toast({ title: 'Despesa registrada!' })
+      }
       onSuccess()
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Erro ao salvar', description: err.message })
@@ -88,7 +112,8 @@ export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
           <SelectContent>
             {trips.map((t) => (
               <SelectItem key={t.id} value={t.id}>
-                {t.origin} ➔ {t.destination} ({new Date(t.date).toLocaleDateString('pt-BR')})
+                {t.origin} ➔ {t.destination} (
+                {new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR')})
               </SelectItem>
             ))}
           </SelectContent>
@@ -138,7 +163,6 @@ export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
             required
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            max={new Date().toISOString().split('T')[0]}
           />
         </div>
       </div>
@@ -153,7 +177,7 @@ export function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Salvando...' : 'Registrar Despesa'}
+        {loading ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Registrar Despesa'}
       </Button>
     </form>
   )

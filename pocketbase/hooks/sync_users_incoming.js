@@ -13,10 +13,15 @@ routerAdd('POST', '/backend/v1/sync-users', (e) => {
 */
   const body = e.requestInfo().body || {}
   const email = body.email || ''
-  const externalId = body.external_id || ''
+  let externalId = body.external_id || ''
 
   if (!email && !externalId) {
     return e.badRequestError('email or external_id is required')
+  }
+
+  // Gera um external_id automaticamente quando não for informado no body
+  const generateExternalId = function () {
+    return 'usr_' + $security.randomString(8).toLowerCase()
   }
 
   let record = null
@@ -36,13 +41,25 @@ routerAdd('POST', '/backend/v1/sync-users', (e) => {
   if (record) {
     if (body.name) record.set('name', body.name)
     if (body.payment_status) record.set('payment_status', body.payment_status)
+    // Garante que o usuário sempre tenha um external_id
+    if (!externalId && !record.getString('external_id')) {
+      externalId = generateExternalId()
+    }
     if (externalId) record.set('external_id', externalId)
     $app.saveNoValidate(record)
-    return e.json(200, { action: 'updated', id: record.id })
+    return e.json(200, {
+      action: 'updated',
+      id: record.id,
+      external_id: record.getString('external_id'),
+    })
   }
 
   if (!email) {
     return e.badRequestError('email is required to create a new user')
+  }
+
+  if (!externalId) {
+    externalId = generateExternalId()
   }
 
   const usersCol = $app.findCollectionByNameOrId('_pb_users_auth_')
@@ -52,7 +69,7 @@ routerAdd('POST', '/backend/v1/sync-users', (e) => {
   newRecord.setVerified(true)
   if (body.name) newRecord.set('name', body.name)
   if (body.payment_status) newRecord.set('payment_status', body.payment_status)
-  if (externalId) newRecord.set('external_id', externalId)
+  newRecord.set('external_id', externalId)
   $app.save(newRecord)
-  return e.json(201, { action: 'created', id: newRecord.id })
+  return e.json(201, { action: 'created', id: newRecord.id, external_id: externalId })
 })

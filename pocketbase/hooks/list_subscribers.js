@@ -1,6 +1,5 @@
 routerAdd('GET', '/backend/v1/subscribers', (e) => {
-  /*
-  por enquanto sem tokem para teste
+  //camado de segurança para caso alguem consigo a url do back seja bloqueado o acesso.
   const authToken = $secrets.get('EXTERNAL_SYSTEM_AUTH_TOKEN')
   if (!authToken) {
     return e.json(503, { error: 'sync not configured' })
@@ -9,7 +8,7 @@ routerAdd('GET', '/backend/v1/subscribers', (e) => {
   const authHeader = e.request.header.get('Authorization') || ''
   if (authHeader !== 'Bearer ' + authToken) {
     return e.unauthorizedError('invalid auth token')
-  }*/
+  }
 
   const usersCol = $app.findCollectionByNameOrId('_pb_users_auth_')
   const records = $app.findRecordsByFilter('users', 'id != ""', '-created', 0, 0)

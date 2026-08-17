@@ -42,9 +42,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
+  const generateExternalId = () => {
+    // Gera um identificador único: "usr_" + 8 caracteres alfanuméricos
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    let id = ''
+    for (let i = 0; i < 8; i++) {
+      id += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return `usr_${id}`
+  }
+
   const signUp = async (name: string, email: string, password: string) => {
     try {
-      await pb.collection('users').create({ name, email, password, passwordConfirm: password })
+      const external_id = generateExternalId()
+      await pb
+        .collection('users')
+        .create({ name, email, password, passwordConfirm: password, external_id })
       await pb.collection('users').authWithPassword(email, password)
 
       return { error: null }

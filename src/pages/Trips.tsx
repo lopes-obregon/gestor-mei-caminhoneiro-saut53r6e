@@ -4,15 +4,66 @@ import { Card, CardContent } from '@/components/ui/card'
 import { formatMoney, formatDate } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, Building, Calendar, DollarSign, ChevronDown, Receipt } from 'lucide-react'
-import { CATEGORY_LABELS } from '@/types'
+import {
+  MapPin,
+  Building,
+  Calendar,
+  DollarSign,
+  ChevronDown,
+  Receipt,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
+import { CATEGORY_LABELS, Trip } from '@/types'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { TripForm } from '@/components/forms/TripForm'
+import { deleteTrip } from '@/services/api'
+import { useToast } from '@/hooks/use-toast'
 
 export default function Trips() {
-  const { trips, expenses } = useData()
+  const { trips, expenses, refresh } = useData()
+  const { toast } = useToast()
   const [openTrip, setOpenTrip] = useState<string | null>(null)
+  const [editTrip, setEditTrip] = useState<Trip | null>(null)
+  const [editOpen, setEditOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<Trip | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
-  const totalTripExpenses = (tripId: string) =>
-    expenses.filter((e) => e.trip_id === tripId).reduce((acc, e) => acc + e.amount, 0)
+  const handleEdit = (trip: Trip) => {
+    setEditTrip(trip)
+    setEditOpen(true)
+  }
+
+  const handleEditSuccess = async () => {
+    setEditOpen(false)
+    setEditTrip(null)
+    await refresh()
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await deleteTrip(deleteTarget.id)
+      toast({ title: 'Viagem excluída!' })
+      await refresh()
+    } catch (err: any) {
+      toast({ variant: 'destructive', title: 'Erro ao excluir', description: err.message })
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -78,6 +129,27 @@ export default function Trips() {
                   </div>
                 </div>
 
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleEdit(trip)}
+                  >
+                    <Pencil className="w-3.5 h-3.5 mr-1.5" /> Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/5"
+                    onClick={() => setDeleteTarget(trip)}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Excluir
+                  </Button>
+                </div>
+
                 <Button
                   type="button"
                   variant="ghost"
@@ -131,6 +203,53 @@ export default function Trips() {
           </p>
         )}
       </div>
+
+      {/* Modal de Edição */}
+      <Dialog
+        open={editOpen}
+        onOpenChange={(open) => {
+          setEditOpen(open)
+          if (!open) setEditTrip(null)
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Editar Viagem</DialogTitle>
+          </DialogHeader>
+          <TripForm onSuccess={handleEditSuccess} trip={editTrip} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmação de Exclusão */}
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir viagem?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A viagem{' '}
+              <span className="font-medium text-foreground">
+                {deleteTarget ? `${deleteTarget.origin} ➔ ${deleteTarget.destination}` : ''}
+              </span>{' '}
+              será permanentemente removida. Despesas vinculadas podem ficar sem viagem associada.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

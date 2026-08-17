@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,14 +9,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createTrip } from '@/services/api'
+import { createTrip, updateTrip } from '@/services/api'
 import { useToast } from '@/hooks/use-toast'
+import { Trip } from '@/types'
 import { DocumentScanner } from '@/components/forms/DocumentScanner'
 import { CityAutocomplete } from '@/components/forms/CityAutocomplete'
 
-export function TripForm({ onSuccess }: { onSuccess: () => void }) {
+interface TripFormProps {
+  onSuccess: () => void
+  trip?: Trip | null
+}
+
+export function TripForm({ onSuccess, trip }: TripFormProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const isEditing = !!trip
   const [formData, setFormData] = useState({
     company: '',
     origin: '',
@@ -26,7 +33,25 @@ export function TripForm({ onSuccess }: { onSuccess: () => void }) {
     gross_value: '',
     advance_value: '0',
     advance_type: 'none',
+    status: 'pending' as 'pending' | 'completed',
   })
+
+  // Preenche o formulário quando estiver editando
+  useEffect(() => {
+    if (trip) {
+      setFormData({
+        company: trip.company ?? '',
+        origin: trip.origin ?? '',
+        destination: trip.destination ?? '',
+        date: trip.date ? trip.date.split('T')[0] : new Date().toISOString().split('T')[0],
+        distance_km: trip.distance_km != null ? String(trip.distance_km) : '',
+        gross_value: trip.gross_value != null ? String(trip.gross_value) : '',
+        advance_value: trip.advance_value != null ? String(trip.advance_value) : '0',
+        advance_type: trip.advance_type ?? 'none',
+        status: trip.status ?? 'pending',
+      })
+    }
+  }, [trip])
 
   const handleExtracted = (data: any) => {
     setFormData((prev) => ({
@@ -47,14 +72,19 @@ export function TripForm({ onSuccess }: { onSuccess: () => void }) {
     e.preventDefault()
     setLoading(true)
     try {
-      await createTrip({
+      const payload = {
         ...formData,
         distance_km: Number(formData.distance_km),
         gross_value: Number(formData.gross_value),
         advance_value: Number(formData.advance_value),
-        status: 'pending',
-      } as any)
-      toast({ title: 'Viagem registrada com sucesso!' })
+      } as any
+      if (isEditing && trip) {
+        await updateTrip(trip.id, payload)
+        toast({ title: 'Viagem atualizada com sucesso!' })
+      } else {
+        await createTrip(payload)
+        toast({ title: 'Viagem registrada com sucesso!' })
+      }
       onSuccess()
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Erro ao salvar', description: err.message })
@@ -97,7 +127,6 @@ export function TripForm({ onSuccess }: { onSuccess: () => void }) {
               required
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              max={new Date().toISOString().split('T')[0]}
             />
           </div>
           <div className="space-y-2">
@@ -149,9 +178,24 @@ export function TripForm({ onSuccess }: { onSuccess: () => void }) {
             </Select>
           </div>
         </div>
+        <div className="space-y-2">
+          <Label>Status</Label>
+          <Select
+            value={formData.status}
+            onValueChange={(v: 'pending' | 'completed') => setFormData({ ...formData, status: v })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pendente</SelectItem>
+              <SelectItem value="completed">Concluída</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Salvando...' : 'Registrar Viagem'}
+        {loading ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Registrar Viagem'}
       </Button>
     </form>
   )
