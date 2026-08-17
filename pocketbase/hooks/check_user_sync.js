@@ -1,7 +1,8 @@
 routerAdd('POST', '/backend/v1/check-user-sync', (e) => {
   const baseUrl = $secrets.get('API_VL_LOCUCOES')
   const authToken = $secrets.get('EXTERNAL_SYSTEM_AUTH_TOKEN')
-
+  const cfClientId = $secrets.get('CF_Access_Client_Id')
+  const cfClientSecret = $secrets.get('CF_Access_Client_Secret')
   if (!baseUrl || !authToken) {
     return e.json(503, { error: 'sync not configured' })
   }
@@ -50,14 +51,18 @@ routerAdd('POST', '/backend/v1/check-user-sync', (e) => {
       const res = $http.send({
         url: url + '/users?email=' + encodeURIComponent(email),
         method: 'GET',
-        headers: { Authorization: 'Bearer ' + authToken },
+        headers: {
+          Authorization: 'Bearer ' + authToken,
+          'CF-Access-Client-Id': cfClientId,
+          'CF-Access-Client-Secret': cfClientSecret,
+        },
         timeout: 15,
       })
       if (res.statusCode >= 200 && res.statusCode < 300) {
         return e.json(200, { synced: true, user: res.json })
       }
     } catch (err) {
-      return e.json(502, { error: 'failed to connect to external system' })
+      return e.json(502, { error: 'Falha na conexão com o sistema externo!' })
     }
   }
 
