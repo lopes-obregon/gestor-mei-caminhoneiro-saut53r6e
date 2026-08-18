@@ -5,7 +5,8 @@ routerAdd('POST', '/backend/v1/sync-users', (e) => {
   }
 
   const authHeader = e.request.header.get('Authorization') || ''
-  if (authHeader !== authToken) {
+  //if (authHeader !== authToken) {
+  if (authHeader !== 'Bearer ' + authToken) {
     return e.unauthorizedError('invalid auth token')
   }
 
