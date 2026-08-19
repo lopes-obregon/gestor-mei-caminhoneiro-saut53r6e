@@ -10,10 +10,12 @@ interface AuthContextType {
     email: string,
     password: string,
     document: string,
+    phone?: string,
   ) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => void
   requestVerification: (email: string) => Promise<{ error: any }>
+  requestPasswordReset: (email: string) => Promise<{ error: any }>
   loading: boolean
 }
 
@@ -61,7 +63,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return `usr_${id}`
   }
 
-  const signUp = async (name: string, email: string, password: string, document: string) => {
+  const signUp = async (
+    name: string,
+    email: string,
+    password: string,
+    document: string,
+    phone?: string,
+  ) => {
     try {
       if (!validateDocument(document)) {
         return { error: { message: 'CPF ou CNPJ inválido.' } }
@@ -75,6 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         passwordConfirm: password,
         external_id,
         document,
+        phone: phone || undefined,
       })
 
       // authenticated user may be created with verified=false; the user can still
@@ -124,13 +133,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
+  const requestPasswordReset = async (email: string) => {
+    try {
+      await pb.collection('users').requestPasswordReset(email)
+      return { error: null }
+    } catch (error) {
+      return { error }
+    }
+  }
+
   const signOut = () => {
     pb.authStore.clear()
   }
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, signUp, signIn, signOut, requestVerification, loading }}
+      value={{
+        user,
+        isAuthenticated,
+        signUp,
+        signIn,
+        signOut,
+        requestVerification,
+        requestPasswordReset,
+        loading,
+      }}
     >
       {children}
     </AuthContext.Provider>

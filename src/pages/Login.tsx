@@ -17,7 +17,20 @@ import {
   User,
   FileText,
   MailWarning,
+  Phone,
 } from 'lucide-react'
+
+/** Formata um número de telefone brasileiro enquanto o usuário digita: (XX) XXXXX-XXXX. */
+export const formatPhone = (value: string): string => {
+  const digits = (value || '').replace(/\D/g, '').slice(0, 11)
+  if (digits.length === 0) return ''
+  if (digits.length <= 2) return `(${digits}`
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+}
 
 export default function Login() {
   const { signIn, signUp, isAuthenticated, requestVerification } = useAuth()
@@ -27,6 +40,7 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [document, setDocument] = useState('')
+  const [phone, setPhone] = useState('')
   const [nameError, setNameError] = useState('')
   const [documentError, setDocumentError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -63,7 +77,7 @@ export default function Login() {
 
     const { error } = isLogin
       ? await signIn(email, password)
-      : await signUp(name.trim(), email, password, document)
+      : await signUp(name.trim(), email, password, document, phone || undefined)
 
     if (error) {
       setLoginFailed(true)
@@ -169,6 +183,24 @@ export default function Login() {
                   />
                 </div>
                 {nameError && <p className="text-sm text-destructive">{nameError}</p>}
+              </div>
+            )}
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="phone">WhatsApp</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    inputMode="numeric"
+                    value={phone}
+                    onChange={(e) => setPhone(formatPhone(e.target.value))}
+                    placeholder="(11) 99999-9999"
+                    className="pl-9"
+                    maxLength={15}
+                  />
+                </div>
               </div>
             )}
             <div className="space-y-2">
@@ -282,6 +314,7 @@ export default function Login() {
                 setNameError('')
                 setDocumentError('')
                 setNeedsVerification(false)
+                setPhone('')
               }}
             >
               {isLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entre'}
