@@ -8,7 +8,16 @@ export default function RestrictedAccess() {
   const { signOut, user, isAuthenticated } = useAuth()
 
   if (!isAuthenticated) return <Navigate to="/login" />
-  if (user?.payment_status === 'paid') return <Navigate to="/" />
+
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
+  const createdMs = user?.created ? new Date(user.created).getTime() : Date.now()
+  const isOlderThan30Days = Date.now() - createdMs > THIRTY_DAYS_MS
+  const hasActivePayment = user?.payment_status === 'paid' || user?.payment_status === 'active'
+
+  // If user is within 30 days OR has active payment, redirect to main app
+  if (!isOlderThan30Days || hasActivePayment) {
+    return <Navigate to="/" />
+  }
 
   const statusLabel = user?.payment_status === 'overdue' ? 'Atrasado' : 'Pendente'
 

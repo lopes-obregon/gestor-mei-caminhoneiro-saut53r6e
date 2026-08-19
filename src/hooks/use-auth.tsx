@@ -99,25 +99,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       const authData = await pb.collection('users').authWithPassword(email, password)
-      const record = authData?.record
-
-      // Allow login even with verified=false, but block if the account is older
-      // than 30 days without e-mail verification.
-      if (record && !record.verified) {
-        const created = record.created ? new Date(record.created).getTime() : 0
-        const ageMs = Date.now() - created
-        if (ageMs > THIRTY_DAYS_MS) {
-          pb.authStore.clear()
-          return {
-            error: {
-              message:
-                'Sua conta não foi verificada em até 30 dias. Verifique seu e-mail ou entre em contato com o suporte.',
-              code: 'UNVERIFIED_EXPIRED',
-            },
-          }
-        }
-      }
-
       return { error: null }
     } catch (error) {
       return { error }

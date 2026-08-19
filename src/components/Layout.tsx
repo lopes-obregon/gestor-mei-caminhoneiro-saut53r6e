@@ -120,7 +120,17 @@ export default function Layout() {
 
   if (loading) return null
   if (!isAuthenticated) return <Navigate to="/login" />
-  if (user?.payment_status !== 'paid') return <Navigate to="/restricted-access" />
+
+  // Checks 30-day grace period from account creation date.
+  // Access is restricted ONLY if user account is older than 30 days AND payment_status is not active/paid.
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
+  const createdMs = user?.created ? new Date(user.created).getTime() : Date.now()
+  const isOlderThan30Days = Date.now() - createdMs > THIRTY_DAYS_MS
+  const hasActivePayment = user?.payment_status === 'paid' || user?.payment_status === 'active'
+
+  if (isOlderThan30Days && !hasActivePayment) {
+    return <Navigate to="/restricted-access" />
+  }
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">

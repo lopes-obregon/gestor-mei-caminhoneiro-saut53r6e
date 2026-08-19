@@ -32,8 +32,18 @@ export const formatPhone = (value: string): string => {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
 }
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Checkbox } from '@/components/ui/checkbox'
+
 export default function Login() {
-  const { signIn, signUp, isAuthenticated, requestVerification } = useAuth()
+  const { signIn, signUp, isAuthenticated, requestVerification, requestPasswordReset } = useAuth()
   const { toast } = useToast()
   const [isLogin, setIsLogin] = useState(true)
   const [name, setName] = useState('')
@@ -41,6 +51,12 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [document, setDocument] = useState('')
   const [phone, setPhone] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [termsError, setAcceptedTermsError] = useState('')
+  const [termsModalOpen, setTermsModalOpen] = useState(false)
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
+  const [sendingReset, setSendingReset] = useState(false)
   const [nameError, setNameError] = useState('')
   const [documentError, setDocumentError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -73,6 +89,13 @@ export default function Login() {
         return
       }
       setDocumentError('')
+
+      if (!acceptedTerms) {
+        setAcceptedTermsError('Você deve aceitar os Termos de Uso para continuar')
+        setLoading(false)
+        return
+      }
+      setAcceptedTermsError('')
     }
 
     const { error } = isLogin
@@ -108,6 +131,37 @@ export default function Login() {
       })
     }
     setResendingVerification(false)
+  }
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const targetEmail = forgotPasswordEmail.trim() || email.trim()
+    if (!targetEmail) {
+      toast({
+        variant: 'destructive',
+        title: 'Campo obrigatório',
+        description: 'Informe seu e-mail para solicitar a redefinição de senha.',
+      })
+      return
+    }
+
+    setSendingReset(true)
+    const { error } = await requestPasswordReset(targetEmail)
+    setSendingReset(false)
+
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao solicitar redefinição',
+        description: error.message || 'Ocorreu um erro ao enviar o e-mail de redefinição.',
+      })
+    } else {
+      toast({
+        title: 'E-mail enviado com sucesso!',
+        description: `Enviamos as instruções de redefinição de senha para ${targetEmail}. Verifique sua caixa de entrada e spam.`,
+      })
+      setForgotPasswordOpen(false)
+    }
   }
 
   const handleCheckSync = async () => {
@@ -215,7 +269,21 @@ export default function Login() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Senha</Label>
+                {isLogin && (
+                  <button
+                    type="button"
+                    className="text-xs text-primary hover:underline font-medium"
+                    onClick={() => {
+                      setForgotPasswordEmail(email)
+                      setForgotPasswordOpen(true)
+                    }}
+                  >
+                    Esqueci minha senha
+                  </button>
+                )}
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -226,6 +294,42 @@ export default function Login() {
                 minLength={8}
               />
             </div>
+
+            {!isLogin && (
+              <div className="space-y-1">
+                <div className="flex items-start gap-2 pt-2">
+                  <Checkbox
+                    id="terms"
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => {
+                      setAcceptedTerms(Boolean(checked))
+                      if (termsError) setAcceptedTermsError('')
+                    }}
+                    className="mt-0.5"
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor="terms"
+                      className="text-xs text-muted-foreground cursor-pointer select-none"
+                    >
+                      Li e aceito os{' '}
+                      <button
+                        type="button"
+                        className="text-primary hover:underline font-medium p-0 h-auto bg-transparent border-none"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setTermsModalOpen(true)
+                        }}
+                      >
+                        Termos de Uso
+                      </button>
+                    </label>
+                  </div>
+                </div>
+                {termsError && <p className="text-xs text-destructive">{termsError}</p>}
+              </div>
+            )}
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Criar Conta'}
             </Button>
@@ -313,6 +417,7 @@ export default function Login() {
                 setSyncResult('')
                 setNameError('')
                 setDocumentError('')
+                setAcceptedTermsError('')
                 setNeedsVerification(false)
                 setPhone('')
               }}
@@ -322,6 +427,122 @@ export default function Login() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Forgot Password Modal */}
+      <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Esqueci minha senha</DialogTitle>
+            <DialogDescription>
+              Informe seu e-mail cadastrado para receber um link de redefinição de senha.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleForgotPassword} className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="forgot-email">E-mail</Label>
+              <Input
+                id="forgot-email"
+                type="email"
+                required
+                value={forgotPasswordEmail}
+                onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                placeholder="seu@email.com"
+              />
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button type="button" variant="outline" onClick={() => setForgotPasswordOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={sendingReset}>
+                {sendingReset ? 'Enviando...' : 'Enviar e-mail'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Terms of Use Modal */}
+      <Dialog open={termsModalOpen} onOpenChange={setTermsModalOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Termos de Uso - Gestor MEI Caminhoneiro</DialogTitle>
+            <DialogDescription>
+              Leia atentamente os termos e condições de uso do software abaixo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto pr-2 space-y-4 text-sm text-muted-foreground my-2 border rounded-md p-4 bg-muted/20">
+            <div>
+              <h4 className="font-semibold text-foreground mb-1">
+                CLÁUSULA 1ª – DO OBJETO E SEU USO
+              </h4>
+              <p>
+                A LICENCIANTE cede à LICENCIADA o licenciamento para utilização do software Gestor
+                MEI Caminhoneiro. A LICENCIADA se responsabiliza pelo hardware necessário para a
+                correta execução do software ora licenciado e afirma ter avaliado o software e ter
+                conhecimento de suas funcionalidades assim como eventuais limitações.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-foreground mb-1">
+                CLÁUSULA 2ª – DA ATUALIZAÇÃO OU MANUTENÇÃO
+              </h4>
+              <p>
+                O software poderá ser objeto de atualização corretiva, de otimização ou de
+                melhorias. Caso a solicitação seja originada pela LICENCIADA em caráter de melhoria
+                pontual que não esteja impedindo o correto funcionamento, poderá haver cobrança
+                adicional previamente acordada; correções de falhas impeditivas não terão custo
+                adicional.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-foreground mb-1">CLÁUSULA 3ª – DO PRAZO</h4>
+              <p>
+                A licença é por prazo indeterminado. Em caso de rescisão do contrato por qualquer
+                uma das partes, a LICENCIADA pagará o valor correspondente ao tempo de licença
+                efetivamente utilizado caso ainda pendente de pagamento.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-foreground mb-1">CLÁUSULA 4ª – DA RETRIBUIÇÃO</h4>
+              <p>
+                Pela licença cedida, a LICENCIADA pagará à LICENCIANTE a quantia acordada conforme o
+                plano selecionado.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-foreground mb-1">
+                CLÁUSULA 5ª – DA PROPRIEDADE INTELECTUAL
+              </h4>
+              <p>
+                Todos os direitos de propriedade intelectual pertencem à LICENCIANTE e/ou seus
+                fornecedores. Em caso de término ou rescisão deste Contrato, o uso do Software deve
+                ser interrompido imediatamente.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-foreground mb-1">
+                CLÁUSULA 6ª – DAS OBRIGAÇÕES DA LICENCIANTE
+              </h4>
+              <p>
+                Constituem obrigações da LICENCIANTE: I. Fornecer o software na forma e modo
+                ajustados; II. Auxiliar a LICENCIADA na solução de quaisquer dúvidas existentes;
+                III. Corrigir qualquer erro ou defeito relatado referente ao software.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="pt-2">
+            <Button
+              onClick={() => {
+                setAcceptedTerms(true)
+                setAcceptedTermsError('')
+                setTermsModalOpen(false)
+              }}
+            >
+              Entendi e Aceito os Termos
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
