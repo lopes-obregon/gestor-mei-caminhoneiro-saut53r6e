@@ -1,14 +1,23 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import pb from '@/lib/pocketbase/client'
+import { validateDocument } from '@/lib/document'
 
 interface AuthContextType {
   user: any
   isAuthenticated: boolean
-  signUp: (name: string, email: string, password: string) => Promise<{ error: any }>
+  signUp: (
+    name: string,
+    email: string,
+    password: string,
+    document: string,
+  ) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => void
+  requestVerification: (email: string) => Promise<{ error: any }>
   loading: boolean
 }
+
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -52,12 +61,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return `usr_${id}`
   }
 
-  const signUp = async (name: string, email: string, password: string) => {
+  const signUp = async (name: string, email: string, password: string, document: string) => {
     try {
+      if (!validateDocument(document)) {
+        return { error: { message: 'CPF ou CNPJ inválido.' } }
+      }
+
       const external_id = generateExternalId()
-      await pb
-        .collection('users')
-        .create({ name, email, password, passwordConfirm: password, external_id })
+      await pb.collection('users').create({
+        name,
+        email,
+        password,
+        passwordConfirm: password,
+        external_id,
+        document,
+      })
+
+      // authenticated user may be created with verified=false; the user can still
+      // log in within the first 30 days.
       await pb.collection('users').authWithPassword(email, password)
 
       return { error: null }
@@ -68,7 +89,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      await pb.collection('users').authWithPassword(email, password)
+      const authData = await pb.collection('users').authWithPassword(email, password)
+      const record = authData?.record
+
+      // Allow login even with verified=false, but block if the account is older
+      // than 30 days without e-mail verification.
+      if (record && !record.verified) {
+        const created = record.created ? new Date(record.created).getTime() : 0
+        const ageMs = Date.now() - created
+        if (ageMs > THIRTY_DAYS_MS) {
+          pb.authStore.clear()
+          return {
+            error: {
+              message:
+                'Sua conta não foi verificada em até 30 dias. Verifique seu e-mail ou entre em contato com o suporte.',
+              code: 'UNVERIFIED_EXPIRED',
+            },
+          }
+        }
+      }
+
+      return { error: null }
+    } catch (error) {
+      return { error }
+    }
+  }
+
+  const requestVerification = async (email: string) => {
+    try {
+      await pb.collection('users').requestVerification(email)
       return { error: null }
     } catch (error) {
       return { error }
@@ -80,7 +129,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, signUp, signIn, signOut, loading }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated, signUp, signIn, signOut, requestVerification, loading }}
+    >
       {children}
     </AuthContext.Provider>
   )

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-18T20:39:57.903Z",
+  "generatedAt": "2026-08-18T20:58:30.756Z",
   "collections": [
     {
       "name": "users",
@@ -47,6 +47,12 @@
         },
         {
           "name": "external_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "document",
           "type": "text",
           "required": false,
           "system": false

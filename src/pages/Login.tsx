@@ -8,21 +8,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast'
 import { checkUserSync } from '@/services/sync'
 import { cn } from '@/lib/utils'
-import { Truck, RefreshCw, AlertCircle, CheckCircle2, User } from 'lucide-react'
+import { formatDocument, validateDocument } from '@/lib/document'
+import {
+  Truck,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
+  User,
+  FileText,
+  MailWarning,
+} from 'lucide-react'
 
 export default function Login() {
-  const { signIn, signUp, isAuthenticated } = useAuth()
+  const { signIn, signUp, isAuthenticated, requestVerification } = useAuth()
   const { toast } = useToast()
   const [isLogin, setIsLogin] = useState(true)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [document, setDocument] = useState('')
   const [nameError, setNameError] = useState('')
+  const [documentError, setDocumentError] = useState('')
   const [loading, setLoading] = useState(false)
   const [loginFailed, setLoginFailed] = useState(false)
   const [checkingSync, setCheckingSync] = useState(false)
   const [syncResult, setSyncResult] = useState('')
   const [syncError, setSyncError] = useState(false)
+  const [resendingVerification, setResendingVerification] = useState(false)
+  const [needsVerification, setNeedsVerification] = useState(false)
 
   if (isAuthenticated) return <Navigate to="/" />
 
@@ -39,14 +52,22 @@ export default function Login() {
         return
       }
       setNameError('')
+
+      if (!document.trim() || !validateDocument(document)) {
+        setDocumentError('Informe um CPF ou CNPJ válido')
+        setLoading(false)
+        return
+      }
+      setDocumentError('')
     }
 
     const { error } = isLogin
       ? await signIn(email, password)
-      : await signUp(name.trim(), email, password)
+      : await signUp(name.trim(), email, password, document)
 
     if (error) {
       setLoginFailed(true)
+      setNeedsVerification(error?.code === 'UNVERIFIED_EXPIRED')
       toast({
         variant: 'destructive',
         title: 'Erro de autenticação',
@@ -54,6 +75,25 @@ export default function Login() {
       })
     }
     setLoading(false)
+  }
+
+  const handleResendVerification = async () => {
+    if (!email) return
+    setResendingVerification(true)
+    const { error } = await requestVerification(email)
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao reenviar',
+        description: error.message || 'Não foi possível reenviar o e-mail de verificação.',
+      })
+    } else {
+      toast({
+        title: 'E-mail enviado',
+        description: 'Verifique sua caixa de entrada (e o spam) para confirmar seu e-mail.',
+      })
+    }
+    setResendingVerification(false)
   }
 
   const handleCheckSync = async () => {
@@ -89,6 +129,27 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="document">CPF ou CNPJ</Label>
+                <div className="relative">
+                  <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="document"
+                    type="text"
+                    required
+                    value={document}
+                    onChange={(e) => {
+                      setDocument(formatDocument(e.target.value))
+                      if (documentError) setDocumentError('')
+                    }}
+                    placeholder="000.000.000-00 ou A1.B2C.3D4/E5F6-01"
+                    className={cn('pl-9', documentError && 'border-destructive')}
+                  />
+                </div>
+                {documentError && <p className="text-sm text-destructive">{documentError}</p>}
+              </div>
+            )}
             {!isLogin && (
               <div className="space-y-2">
                 <Label htmlFor="name">Nome completo</Label>
@@ -178,6 +239,38 @@ export default function Login() {
             </div>
           )}
 
+          {isLogin && (
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              disabled={resendingVerification || !email}
+              onClick={handleResendVerification}
+            >
+              {resendingVerification ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <MailWarning className="w-4 h-4 mr-2" />
+                  Reenviar e-mail de verificação
+                </>
+              )}
+            </Button>
+          )}
+
+          {needsVerification && isLogin && (
+            <div className="mt-4 flex items-start gap-2 text-sm p-3 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 animate-fade-in">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>
+                Sua conta expirou por falta de verificação. Reenvie o e-mail de verificação acima ou
+                entre em contato com o suporte.
+              </span>
+            </div>
+          )}
+
           <div className="mt-4 text-center">
             <button
               type="button"
@@ -187,6 +280,8 @@ export default function Login() {
                 setLoginFailed(false)
                 setSyncResult('')
                 setNameError('')
+                setDocumentError('')
+                setNeedsVerification(false)
               }}
             >
               {isLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entre'}
