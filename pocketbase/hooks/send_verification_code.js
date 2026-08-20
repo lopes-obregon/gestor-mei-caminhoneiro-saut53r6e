@@ -116,13 +116,15 @@ onRecordAfterCreateSuccess((e) => {
     return e.next()
   }
 
-  const cfClientId = $os.getenv('CF_ACCESS_CLIENT_ID') || $os.getenv('CF_Access_Client_Id') || ''
+  const cfClientId = $secrets.get('CF_ACCESS_CLIENT_ID') || $os.getenv('CF_Access_Client_Id') || ''
   const cfClientSecret =
-    $os.getenv('CF_ACCESS_CLIENT_SECRET') || $os.getenv('CF_Access_Client_Secret') || ''
-
+    $secrets.get('CF_ACCESS_CLIENT_SECRET') || $os.getenv('CF_Access_Client_Secret') || ''
+  const baseUrl = $secrets.get('API_VL_LOCUCOES')
+  let url = baseUrl
+  if (url.endsWith('/')) url = url.slice(0, -1)
   try {
     const res = $http.send({
-      url: 'https://api.vlsolucoesia.com.br/backend/v1/send-code',
+      url: url + '/send-code',
       method: 'POST',
       headers: {
         'CF-Access-Client-Id': cfClientId,
