@@ -98,18 +98,72 @@ export default function Login() {
       setAcceptedTermsError('')
     }
 
-    const { error } = isLogin
-      ? await signIn(email, password)
-      : await signUp(name.trim(), email, password, document, phone || undefined)
+    if (isLogin) {
+      const { error } = await signIn(email, password)
+      if (error) {
+        setLoginFailed(true)
+        setNeedsVerification(error?.code === 'UNVERIFIED_EXPIRED')
+        toast({
+          variant: 'destructive',
+          title: 'Erro de autenticação',
+          description: error.message || 'Verifique suas credenciais e tente novamente.',
+        })
+      }
+    } else {
+      const { error } = await signUp(name.trim(), email, password, document, phone || undefined)
+      if (error) {
+        const isEmailNotUnique =
+          error?.data?.data?.email?.code === 'validation_not_unique' ||
+          error?.data?.email?.code === 'validation_not_unique' ||
+          error?.response?.data?.email?.code === 'validation_not_unique' ||
+          error?.data?.email?.message?.toLowerCase().includes('unique') ||
+          error?.data?.data?.email?.message?.toLowerCase().includes('unique')
 
-    if (error) {
-      setLoginFailed(true)
-      setNeedsVerification(error?.code === 'UNVERIFIED_EXPIRED')
-      toast({
-        variant: 'destructive',
-        title: 'Erro de autenticação',
-        description: error.message || 'Verifique suas credenciais e tente novamente.',
-      })
+        if (isEmailNotUnique) {
+          toast({
+            variant: 'destructive',
+            title: 'E-mail já cadastrado',
+            description:
+              "Este e-mail já está cadastrado. Tente fazer login ou use 'Esqueci minha senha'.",
+          })
+        } else {
+          // Extrair mensagem específica ou geral do backend
+          const fieldData = error?.data?.data || error?.data || error?.response?.data
+          let errorDescription = error?.message || 'Erro ao criar conta. Tente novamente.'
+
+          if (fieldData && typeof fieldData === 'object') {
+            const fieldErrors = Object.entries(fieldData)
+              .map(([field, detail]: [string, any]) => {
+                const msg = detail?.message || detail
+                if (typeof msg === 'string') {
+                  const fieldLabel =
+                    field === 'email'
+                      ? 'E-mail'
+                      : field === 'password'
+                        ? 'Senha'
+                        : field === 'document'
+                          ? 'CPF/CNPJ'
+                          : field === 'name'
+                            ? 'Nome'
+                            : field
+                  return `${fieldLabel}: ${msg}`
+                }
+                return null
+              })
+              .filter(Boolean)
+
+            if (fieldErrors.length > 0) {
+              errorDescription = fieldErrors.join('. ')
+            }
+          }
+
+          toast({
+            variant: 'destructive',
+            title: 'Erro ao criar conta',
+            description: errorDescription,
+          })
+        }
+      }
     }
     setLoading(false)
   }
