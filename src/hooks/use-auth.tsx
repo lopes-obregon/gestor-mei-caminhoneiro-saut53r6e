@@ -86,9 +86,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         phone: phone || undefined,
       })
 
-      // Faz login automático após o cadastro
-      await pb.collection('users').authWithPassword(email, password)
-
       return { error: null }
     } catch (error: any) {
       return {
