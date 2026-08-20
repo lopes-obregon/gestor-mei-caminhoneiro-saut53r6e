@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
-import { Navigate } from 'react-router-dom'
+import { Navigate, Link, useNavigate } from 'react-router-dom'
+import pb from '@/lib/pocketbase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -43,8 +44,9 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 
 export default function Login() {
-  const { signIn, signUp, isAuthenticated, requestVerification, requestPasswordReset } = useAuth()
+  const { signIn, signUp, isAuthenticated, requestVerification } = useAuth()
   const { toast } = useToast()
+  const navigate = useNavigate()
   const [isLogin, setIsLogin] = useState(true)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -54,9 +56,6 @@ export default function Login() {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [termsError, setAcceptedTermsError] = useState('')
   const [termsModalOpen, setTermsModalOpen] = useState(false)
-  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
-  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
-  const [sendingReset, setSendingReset] = useState(false)
   const [nameError, setNameError] = useState('')
   const [documentError, setDocumentError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -163,6 +162,13 @@ export default function Login() {
             description: errorDescription,
           })
         }
+      } else {
+        toast({
+          title: 'Conta criada com sucesso!',
+          description: 'Enviamos um código de verificação para seu e-mail.',
+        })
+        navigate(`/auth/verify-code?email=${encodeURIComponent(email)}`)
+        return
       }
     }
     setLoading(false)
@@ -171,50 +177,25 @@ export default function Login() {
   const handleResendVerification = async () => {
     if (!email) return
     setResendingVerification(true)
-    const { error } = await requestVerification(email)
-    if (error) {
+    try {
+      await pb.send('/backend/v1/request-password-reset', {
+        method: 'POST',
+        body: JSON.stringify({ email: email.trim() }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+      toast({
+        title: 'Código enviado!',
+        description: 'Verifique sua caixa de entrada para o código de verificação.',
+      })
+      navigate(`/auth/verify-code?email=${encodeURIComponent(email.trim())}`)
+    } catch {
       toast({
         variant: 'destructive',
         title: 'Erro ao reenviar',
-        description: error.message || 'Não foi possível reenviar o e-mail de verificação.',
+        description: 'Não foi possível reenviar o código de verificação.',
       })
-    } else {
-      toast({
-        title: 'E-mail enviado',
-        description: 'Verifique sua caixa de entrada (e o spam) para confirmar seu e-mail.',
-      })
-    }
-    setResendingVerification(false)
-  }
-
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const targetEmail = forgotPasswordEmail.trim() || email.trim()
-    if (!targetEmail) {
-      toast({
-        variant: 'destructive',
-        title: 'Campo obrigatório',
-        description: 'Informe seu e-mail para solicitar a redefinição de senha.',
-      })
-      return
-    }
-
-    setSendingReset(true)
-    const { error } = await requestPasswordReset(targetEmail)
-    setSendingReset(false)
-
-    if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro ao solicitar redefinição',
-        description: error.message || 'Ocorreu um erro ao enviar o e-mail de redefinição.',
-      })
-    } else {
-      toast({
-        title: 'E-mail enviado com sucesso!',
-        description: `Enviamos as instruções de redefinição de senha para ${targetEmail}. Verifique sua caixa de entrada e spam.`,
-      })
-      setForgotPasswordOpen(false)
+    } finally {
+      setResendingVerification(false)
     }
   }
 
@@ -326,16 +307,12 @@ export default function Login() {
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Senha</Label>
                 {isLogin && (
-                  <button
-                    type="button"
+                  <Link
+                    to="/auth/forgot-password"
                     className="text-xs text-primary hover:underline font-medium"
-                    onClick={() => {
-                      setForgotPasswordEmail(email)
-                      setForgotPasswordOpen(true)
-                    }}
                   >
                     Esqueci minha senha
-                  </button>
+                  </Link>
                 )}
               </div>
               <Input
@@ -481,39 +458,6 @@ export default function Login() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Forgot Password Modal */}
-      <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Esqueci minha senha</DialogTitle>
-            <DialogDescription>
-              Informe seu e-mail cadastrado para receber um link de redefinição de senha.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleForgotPassword} className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="forgot-email">E-mail</Label>
-              <Input
-                id="forgot-email"
-                type="email"
-                required
-                value={forgotPasswordEmail}
-                onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                placeholder="seu@email.com"
-              />
-            </div>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button type="button" variant="outline" onClick={() => setForgotPasswordOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={sendingReset}>
-                {sendingReset ? 'Enviando...' : 'Enviar e-mail'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       {/* Terms of Use Modal */}
       <Dialog open={termsModalOpen} onOpenChange={setTermsModalOpen}>

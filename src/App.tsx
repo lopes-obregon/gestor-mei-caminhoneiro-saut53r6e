@@ -10,6 +10,9 @@ import Layout from '@/components/Layout'
 import Login from '@/pages/Login'
 import Verification from '@/pages/Verification'
 import PasswordReset from '@/pages/PasswordReset'
+import VerifyCode from '@/pages/VerifyCode'
+import ForgotPassword from '@/pages/ForgotPassword'
+import ResetPassword from '@/pages/ResetPassword'
 import Index from '@/pages/Index'
 import Trips from '@/pages/Trips'
 import Expenses from '@/pages/Expenses'
@@ -26,6 +29,9 @@ const App = () => (
           <Sonner />
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/auth/verify-code" element={<VerifyCode />} />
+            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/confirm-verification/:token" element={<Verification />} />
             <Route path="/auth/confirm-password-reset/:token" element={<PasswordReset />} />
             <Route path="/restricted-access" element={<RestrictedAccess />} />

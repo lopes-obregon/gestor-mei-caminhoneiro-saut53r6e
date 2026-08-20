@@ -84,10 +84,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         external_id,
         document,
         phone: phone || undefined,
+        verified: true,
       })
 
-      // authenticated user may be created with verified=false; the user can still
-      // log in within the first 30 days.
+      // Faz login automático após o cadastro
       await pb.collection('users').authWithPassword(email, password)
 
       return { error: null }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-20T19:54:25.711Z",
+  "generatedAt": "2026-08-20T20:01:23.408Z",
   "collections": [
     {
       "name": "users",
@@ -60,6 +60,18 @@
         {
           "name": "phone",
           "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "verification_code",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "verification_code_expires",
+          "type": "number",
           "required": false,
           "system": false
         }
