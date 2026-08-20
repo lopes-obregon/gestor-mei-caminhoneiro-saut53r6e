@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="36" fill="#f97316"/>
+  <g fill="#ffffff" transform="translate(24, 40)">
+    <!-- Truck Cabin & Body -->
+    <path d="M12 18 C12 10, 18 4, 26 4 L90 4 C98 4, 104 10, 104 18 L104 30 L126 30 C132 30, 137 34, 140 39 L149 55 C151 58, 152 62, 152 66 L152 82 C152 87, 148 91, 143 91 L133 91 C133 80, 124 71, 113 71 C102 71, 93 80, 93 91 L59 91 C59 80, 50 71, 39 71 C28 71, 19 80, 19 91 L12 91 C6.5 91, 2 86.5, 2 81 L2 28 C2 22.5, 6.5 18, 12 18 Z"/>
+    <!-- Truck Window -->
+    <path d="M104 38 L124 38 C126 38, 128 39.5, 129 41.5 L136 54 C137 55.5, 136 58, 134 58 L104 58 Z" fill="#f97316"/>
+    <!-- Front Wheel -->
+    <circle cx="113" cy="91" r="16" fill="#1e293b"/>
+    <circle cx="113" cy="91" r="7" fill="#f8fafc"/>
+    <!-- Back Wheel -->
+    <circle cx="39" cy="91" r="16" fill="#1e293b"/>
+    <circle cx="39" cy="91" r="7" fill="#f8fafc"/>
+    <!-- Speed stripes / MEI badge accent -->
+    <rect x="20" y="24" width="64" height="6" rx="3" fill="#fdba74"/>
+    <rect x="20" y="36" width="48" height="6" rx="3" fill="#fdba74"/>
+    <rect x="20" y="48" width="32" height="6" rx="3" fill="#fdba74"/>
+  </g>
+</svg>
