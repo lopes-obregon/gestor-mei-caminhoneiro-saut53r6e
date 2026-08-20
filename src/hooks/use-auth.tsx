@@ -84,7 +84,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         external_id,
         document,
         phone: phone || undefined,
-        verified: true,
       })
 
       // Faz login automático após o cadastro
