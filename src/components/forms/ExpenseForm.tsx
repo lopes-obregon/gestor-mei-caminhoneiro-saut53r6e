@@ -15,6 +15,16 @@ import { useData } from '@/hooks/use-data'
 import { CATEGORY_LABELS, ExpenseCategory, Expense } from '@/types'
 import { DocumentScanner } from '@/components/forms/DocumentScanner'
 
+// Converte o valor digitado (string) em número, aceitando vírgula como
+// separador decimal (formato brasileiro) e nunca retorna null/NaN — o campo
+// amount é `required` no banco, então enviamos 0 quando vazio ou inválido em
+// vez de null (que causaria HTTP 400).
+const parseNum = (v: string | number | null | undefined): number => {
+  if (v === null || v === undefined || v === '') return 0
+  const n = Number(String(v).replace(',', '.'))
+  return Number.isFinite(n) ? n : 0
+}
+
 interface ExpenseFormProps {
   onSuccess: () => void
   expense?: Expense | null
@@ -74,7 +84,7 @@ export function ExpenseForm({ onSuccess, expense }: ExpenseFormProps) {
     try {
       const payload = {
         category: formData.category,
-        amount: Number(formData.amount),
+        amount: parseNum(formData.amount),
         description: formData.description,
         date: formData.date,
         trip_id: formData.trip_id,

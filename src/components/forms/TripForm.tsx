@@ -15,6 +15,16 @@ import { Trip } from '@/types'
 import { DocumentScanner } from '@/components/forms/DocumentScanner'
 import { CityAutocomplete } from '@/components/forms/CityAutocomplete'
 
+// Converte o valor digitado (string) em número, aceitando vírgula como
+// separador decimal (formato brasileiro) e nunca retorna null/NaN — campos
+// numéricos como distance_km são `required` no banco, então enviamos 0 quando
+// vazio ou inválido em vez de null (que causaria HTTP 400).
+const parseNum = (v: string | number | null | undefined): number => {
+  if (v === null || v === undefined || v === '') return 0
+  const n = Number(String(v).replace(',', '.'))
+  return Number.isFinite(n) ? n : 0
+}
+
 interface TripFormProps {
   onSuccess: () => void
   trip?: Trip | null
@@ -74,9 +84,9 @@ export function TripForm({ onSuccess, trip }: TripFormProps) {
     try {
       const payload = {
         ...formData,
-        distance_km: Number(formData.distance_km),
-        gross_value: Number(formData.gross_value),
-        advance_value: Number(formData.advance_value),
+        distance_km: parseNum(formData.distance_km),
+        gross_value: parseNum(formData.gross_value),
+        advance_value: parseNum(formData.advance_value),
       } as any
       if (isEditing && trip) {
         await updateTrip(trip.id, payload)
