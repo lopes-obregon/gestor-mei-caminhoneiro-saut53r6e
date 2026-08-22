@@ -28,11 +28,21 @@ export default function ForgotPassword() {
 
     setLoading(true)
     try {
-      await pb.send('/backend/v1/request-password-reset', {
+      const data = await pb.send('/backend/v1/request-password-reset', {
         method: 'POST',
         body: JSON.stringify({ email: targetEmail }),
         headers: { 'Content-Type': 'application/json' },
       })
+
+      // E-mail não cadastrado: orienta o usuário a se cadastrar e mantém na página
+      if (data?.not_found === true) {
+        toast({
+          variant: 'destructive',
+          title: 'E-mail não cadastrado',
+          description: 'Esta conta não está cadastrada no sistema. Realize seu cadastro primeiro.',
+        })
+        return
+      }
 
       toast({
         title: 'Solicitação enviada',

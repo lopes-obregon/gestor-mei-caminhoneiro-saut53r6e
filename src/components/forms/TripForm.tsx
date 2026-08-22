@@ -132,11 +132,12 @@ export function TripForm({ onSuccess, trip }: TripFormProps) {
           <div className="space-y-2">
             <Label>Distância (KM)</Label>
             <Input
-              type="number"
+              type="text"
+              inputMode="decimal"
               required
-              min="1"
               value={formData.distance_km}
               onChange={(e) => setFormData({ ...formData, distance_km: e.target.value })}
+              placeholder="Ex: 421,2"
             />
           </div>
         </div>

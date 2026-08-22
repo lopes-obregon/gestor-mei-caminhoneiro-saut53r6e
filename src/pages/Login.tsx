@@ -463,7 +463,7 @@ export default function Login() {
       <Dialog open={termsModalOpen} onOpenChange={setTermsModalOpen}>
         <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle className="text-xl">Termos de Uso - Gestor MEI Caminhoneiro</DialogTitle>
+            <DialogTitle className="text-xl">Termos de Uso - Gestor Caminhoneiro</DialogTitle>
             <DialogDescription>
               Leia atentamente os termos e condições de uso do software abaixo.
             </DialogDescription>

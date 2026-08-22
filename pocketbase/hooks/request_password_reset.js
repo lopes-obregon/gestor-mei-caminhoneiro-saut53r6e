@@ -10,8 +10,9 @@ routerAdd('POST', '/backend/v1/request-password-reset', (e) => {
   try {
     user = $app.findAuthRecordByEmail('_pb_users_auth_', email)
   } catch (_) {
-    // Retornar 200 sempre para não expor se o email existe
-    return e.json(200, { success: true })
+    // Retornar 200 sempre para não expor se o email existe,
+    // mas sinaliza not_found para o frontend orientar o usuário
+    return e.json(200, { success: true, not_found: true })
   }
 
   // Gerar código de 6 dígitos, salvar verification_code e verification_code_expires (10 min)

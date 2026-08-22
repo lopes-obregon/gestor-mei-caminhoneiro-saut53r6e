@@ -2,7 +2,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { Navigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { LockKeyhole, LogOut, Truck } from 'lucide-react'
+import { LockKeyhole, LogOut, Truck, Mail, MessageCircle } from 'lucide-react'
 
 export default function RestrictedAccess() {
   const { signOut, user, isAuthenticated } = useAuth()
