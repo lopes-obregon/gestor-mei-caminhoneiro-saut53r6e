@@ -475,8 +475,8 @@ export default function Login() {
               </h4>
               <p>
                 A LICENCIANTE cede à LICENCIADA o licenciamento para utilização do software Gestor
-                MEI Caminhoneiro. A LICENCIADA se responsabiliza pelo hardware necessário para a
-                correta execução do software ora licenciado e afirma ter avaliado o software e ter
+                Caminhoneiro. A LICENCIADA se responsabiliza pelo hardware necessário para a correta
+                execução do software ora licenciado e afirma ter avaliado o software e ter
                 conhecimento de suas funcionalidades assim como eventuais limitações.
               </p>
             </div>
