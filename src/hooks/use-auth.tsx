@@ -19,8 +19,6 @@ interface AuthContextType {
   loading: boolean
 }
 
-const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const useAuth = () => {

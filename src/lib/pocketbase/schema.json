@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-22T00:23:45.404Z",
+  "generatedAt": "2026-08-22T00:40:12.932Z",
   "collections": [
     {
       "name": "users",
@@ -85,11 +85,11 @@
       "name": "trips",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && user_id = @request.auth.id && (@request.auth.payment_status = \"paid\" || strftime('%Y-%m-%d %H:%M:%S', @request.auth.created) > strftime('%Y-%m-%d %H:%M:%S', 'now', '-30 days'))",
-        "view": "@request.auth.id != '' && user_id = @request.auth.id && (@request.auth.payment_status = \"paid\" || strftime('%Y-%m-%d %H:%M:%S', @request.auth.created) > strftime('%Y-%m-%d %H:%M:%S', 'now', '-30 days'))",
-        "create": "@request.auth.id != '' && (@request.auth.payment_status = \"paid\" || strftime('%Y-%m-%d %H:%M:%S', @request.auth.created) > strftime('%Y-%m-%d %H:%M:%S', 'now', '-30 days'))",
-        "update": "@request.auth.id != '' && user_id = @request.auth.id && (@request.auth.payment_status = \"paid\" || strftime('%Y-%m-%d %H:%M:%S', @request.auth.created) > strftime('%Y-%m-%d %H:%M:%S', 'now', '-30 days'))",
-        "delete": "@request.auth.id != '' && user_id = @request.auth.id && (@request.auth.payment_status = \"paid\" || strftime('%Y-%m-%d %H:%M:%S', @request.auth.created) > strftime('%Y-%m-%d %H:%M:%S', 'now', '-30 days'))"
+        "list": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "view": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "create": "@request.auth.id != '' && @request.auth.payment_status = \"paid\"",
+        "update": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "delete": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\""
       },
       "fields": [
         {
@@ -176,11 +176,11 @@
       "name": "expenses",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && user_id = @request.auth.id && (@request.auth.payment_status = \"paid\" || strftime('%Y-%m-%d %H:%M:%S', @request.auth.created) > strftime('%Y-%m-%d %H:%M:%S', 'now', '-30 days'))",
-        "view": "@request.auth.id != '' && user_id = @request.auth.id && (@request.auth.payment_status = \"paid\" || strftime('%Y-%m-%d %H:%M:%S', @request.auth.created) > strftime('%Y-%m-%d %H:%M:%S', 'now', '-30 days'))",
-        "create": "@request.auth.id != '' && (@request.auth.payment_status = \"paid\" || strftime('%Y-%m-%d %H:%M:%S', @request.auth.created) > strftime('%Y-%m-%d %H:%M:%S', 'now', '-30 days'))",
-        "update": "@request.auth.id != '' && user_id = @request.auth.id && (@request.auth.payment_status = \"paid\" || strftime('%Y-%m-%d %H:%M:%S', @request.auth.created) > strftime('%Y-%m-%d %H:%M:%S', 'now', '-30 days'))",
-        "delete": "@request.auth.id != '' && user_id = @request.auth.id && (@request.auth.payment_status = \"paid\" || strftime('%Y-%m-%d %H:%M:%S', @request.auth.created) > strftime('%Y-%m-%d %H:%M:%S', 'now', '-30 days'))"
+        "list": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "view": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "create": "@request.auth.id != '' && @request.auth.payment_status = \"paid\"",
+        "update": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\"",
+        "delete": "@request.auth.id != '' && user_id = @request.auth.id && @request.auth.payment_status = \"paid\""
       },
       "fields": [
         {
