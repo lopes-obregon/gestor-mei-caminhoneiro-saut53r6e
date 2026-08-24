@@ -28,6 +28,7 @@ onRecordAfterCreateSuccess((e) => {
         name: record.getString('name'),
         email: record.getString('email'),
         payment_status: record.getString('payment_status'),
+        create_date: record.getString('create_date'),
       }),
       timeout: 15,
     })
