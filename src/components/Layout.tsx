@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom'
-import { Home, Truck, Receipt, FileText, Plus, LogOut, AlertTriangle, X } from 'lucide-react'
+import { Home, Truck, Receipt, FileText, Plus, LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -117,27 +117,11 @@ function QuickAdd() {
 
 export default function Layout() {
   const { isAuthenticated, loading, signOut, user } = useAuth()
-  const [bannerDismissed, setBannerDismissed] = useState(false)
 
   if (loading) return null
   if (!isAuthenticated) return <Navigate to="/login" />
 
-  // Checks 30-day grace period from account creation date.
-  // Access is restricted ONLY if user account is older than 30 days AND payment_status is not active/paid.
-  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
-  const createdMs = user?.created ? new Date(user.created).getTime() : Date.now()
-  const isOlderThan30Days = Date.now() - createdMs > THIRTY_DAYS_MS
-  const hasActivePayment = user?.payment_status === 'paid' || user?.payment_status === 'active'
-
-  // TODO: substituir por variáveis de ambiente
-  const contactEmail = 'contato@vlsolucoesia.com.br'
-  const contactWhatsapp = '(67) 99999-9999'
-  const whatsappDigits = '5567999999999'
-
-  const daysLeft = Math.ceil((createdMs + THIRTY_DAYS_MS - Date.now()) / (24 * 60 * 60 * 1000))
-  const showExpiryBanner = daysLeft <= 5 && daysLeft > 0 && !hasActivePayment && !bannerDismissed
-
-  if (isOlderThan30Days && !hasActivePayment) {
+  if (user?.payment_status !== 'paid') {
     return <Navigate to="/restricted-access" />
   }
 
@@ -165,45 +149,6 @@ export default function Layout() {
       </aside>
 
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-        {showExpiryBanner && (
-          <div className="bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800 px-4 md:px-8 py-3 flex items-start gap-3 shrink-0">
-            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div className="flex-1 text-sm text-amber-800 dark:text-amber-200">
-              <p>
-                Seu período gratuito de 30 dias termina em{' '}
-                <strong>
-                  {daysLeft} {daysLeft === 1 ? 'dia' : 'dias'}
-                </strong>
-                . Entre em contato para manter o acesso:
-              </p>
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                <a
-                  href={`mailto:${contactEmail}`}
-                  className="font-medium underline hover:no-underline"
-                >
-                  {contactEmail}
-                </a>
-                <span className="text-amber-400">•</span>
-                <a
-                  href={`https://wa.me/${whatsappDigits}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium underline hover:no-underline"
-                >
-                  {contactWhatsapp}
-                </a>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setBannerDismissed(true)}
-              className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 shrink-0"
-              aria-label="Fechar aviso"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
         {/* Header */}
         <header className="h-16 border-b bg-card flex items-center justify-between px-4 md:px-8 shrink-0">
           <h2 className="text-lg font-semibold md:hidden">Gestor Caminhoneiro</h2>

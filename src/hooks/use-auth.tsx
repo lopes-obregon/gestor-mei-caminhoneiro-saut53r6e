@@ -12,14 +12,12 @@ interface AuthContextType {
     document: string,
     phone?: string,
   ) => Promise<{ error: any }>
-  signIn: (email: string, password: string) => Promise<{ error: any }>
+  signIn: (email: string, password: string) => Promise<{ error: any; user?: any }>
   signOut: () => void
   requestVerification: (email: string) => Promise<{ error: any }>
   requestPasswordReset: (email: string) => Promise<{ error: any }>
   loading: boolean
 }
-
-const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -102,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       const authData = await pb.collection('users').authWithPassword(email, password)
-      return { error: null }
+      return { error: null, user: authData.record }
     } catch (error) {
       return { error }
     }
