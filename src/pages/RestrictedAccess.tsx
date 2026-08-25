@@ -7,9 +7,9 @@ import { LockKeyhole, LogOut, Truck, Mail, MessageCircle } from 'lucide-react'
 export default function RestrictedAccess() {
   const { signOut, user, isAuthenticated } = useAuth()
 
-  const contactEmail = 'contato@vlsolucoesia.com.br'
-  const contactWhatsapp = '(67) 99999-9999'
-  const whatsappDigits = '5567999999999'
+  const contactEmail = 'vlsolucoesia@gmail.com'
+  const contactWhatsapp = '(67) 981538470'
+  const whatsappDigits = '5567981538470'
 
   const statusLabel =
     user?.payment_status === 'overdue'
