@@ -2,7 +2,11 @@
   "name": "skip-react-template",
   "description": "A frontend React Vite TypeScript Shadcn UI template for Skip projects",
   "private": true,
+<<<<<<< HEAD
   "version": "0.0.78",
+=======
+  "version": "0.0.86",
+>>>>>>> 0e45ddd42dedddce10250b9628bc6496453cafe4
   "type": "module",
   "scripts": {
     "start": "vite dev",

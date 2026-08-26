@@ -43,6 +43,18 @@ export interface Expense {
   }
 }
 
+export interface AppNotification {
+  id: string
+  user_id: string
+  title: string
+  message: string
+  type: 'payment' | 'system' | 'alert'
+  read: boolean
+  payload?: Record<string, any>
+  created: string
+  updated: string
+}
+
 export const CATEGORY_LABELS: Record<ExpenseCategory, string> = {
   fuel: 'Combustível',
   toll: 'Pedágio',

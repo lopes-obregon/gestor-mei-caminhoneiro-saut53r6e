@@ -44,7 +44,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 
 export default function Login() {
-  const { signIn, signUp, isAuthenticated, requestVerification } = useAuth()
+  const { signIn, signUp, signOut, isAuthenticated, requestVerification } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
   const [isLogin, setIsLogin] = useState(true)
@@ -98,7 +98,7 @@ export default function Login() {
     }
 
     if (isLogin) {
-      const { error } = await signIn(email, password)
+      const { error, user: loggedUser } = await signIn(email, password)
       if (error) {
         setLoginFailed(true)
         setNeedsVerification(error?.code === 'UNVERIFIED_EXPIRED')
@@ -107,6 +107,13 @@ export default function Login() {
           title: 'Erro de autenticação',
           description: error.message || 'Verifique suas credenciais e tente novamente.',
         })
+      } else {
+        const record = loggedUser || pb.authStore.record
+        if (record?.payment_status !== 'paid') {
+          signOut()
+          navigate('/restricted-access')
+          return
+        }
       }
     } else {
       const { error } = await signUp(name.trim(), email, password, document, phone || undefined)

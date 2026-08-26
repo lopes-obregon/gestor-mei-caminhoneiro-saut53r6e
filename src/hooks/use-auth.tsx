@@ -12,7 +12,7 @@ interface AuthContextType {
     document: string,
     phone?: string,
   ) => Promise<{ error: any }>
-  signIn: (email: string, password: string) => Promise<{ error: any }>
+  signIn: (email: string, password: string) => Promise<{ error: any; user?: any }>
   signOut: () => void
   requestVerification: (email: string) => Promise<{ error: any }>
   requestPasswordReset: (email: string) => Promise<{ error: any }>
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       const authData = await pb.collection('users').authWithPassword(email, password)
-      return { error: null }
+      return { error: null, user: authData.record }
     } catch (error) {
       return { error }
     }
