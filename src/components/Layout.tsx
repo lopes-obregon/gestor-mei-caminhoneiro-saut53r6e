@@ -1,4 +1,7 @@
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom'
+<<<<<<< HEAD
+import { Home, Truck, Receipt, FileText, Plus, LogOut } from 'lucide-react'
+=======
 import {
   Home,
   Truck,
@@ -12,6 +15,7 @@ import {
   AlertTriangle,
   ShieldCheck,
 } from 'lucide-react'
+>>>>>>> 0e45ddd42dedddce10250b9628bc6496453cafe4
 import { useAuth } from '@/hooks/use-auth'
 import { useNotifications } from '@/hooks/use-notifications'
 import { Button } from '@/components/ui/button'
@@ -410,7 +414,15 @@ export default function Layout() {
   if (loading) return null
   if (!isAuthenticated) return <Navigate to="/login" />
 
+<<<<<<< HEAD
+  // Todo usuário já nasce com payment_status = "paid" (hook de criação + migration).
+  // A tela de acesso restrito só aparece para quem NÃO está com pagamento ativo.
+  const hasActivePayment = user?.payment_status === 'paid' || user?.payment_status === 'active'
+
+  if (!hasActivePayment) {
+=======
   if (user?.payment_status !== 'paid') {
+>>>>>>> 0e45ddd42dedddce10250b9628bc6496453cafe4
     return <Navigate to="/restricted-access" />
   }
 

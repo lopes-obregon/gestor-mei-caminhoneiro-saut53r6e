@@ -28,7 +28,11 @@ onRecordAfterCreateSuccess((e) => {
         name: record.getString('name'),
         email: record.getString('email'),
         payment_status: record.getString('payment_status'),
+<<<<<<< HEAD
+        create_date: record.getString('create_date'),
+=======
         create_date: record.getString('created'),
+>>>>>>> 0e45ddd42dedddce10250b9628bc6496453cafe4
       }),
       timeout: 15,
     })
