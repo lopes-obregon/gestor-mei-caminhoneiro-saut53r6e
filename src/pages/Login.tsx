@@ -67,7 +67,6 @@ export default function Login() {
   const [needsVerification, setNeedsVerification] = useState(false)
   const [attemps, setAttemps] = useState(0)
   const [lockoutTime, setLockoutTime] = useState(0)
-  if (isAuthenticated) return <Navigate to="/" />
 
   useEffect(() => {
     if (lockoutTime > 0) {
@@ -77,6 +76,8 @@ export default function Login() {
       return () => clearInterval(timer)
     }
   }, [lockoutTime])
+
+  if (isAuthenticated) return <Navigate to="/" />
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -86,7 +87,7 @@ export default function Login() {
       toast({
         variant: 'destructive',
         title: 'Acesso temporariamente bloqueado',
-        description: `Você excedeu o número máximo de tentativas. Tente novamente em ${lockout} segundos.`,
+        description: `Você excedeu o número máximo de tentativas. Tente novamente em ${lockoutTime} segundos.`,
       })
       return
     }
