@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
 import pb from '@/lib/pocketbase/client'
@@ -65,15 +65,31 @@ export default function Login() {
   const [syncError, setSyncError] = useState(false)
   const [resendingVerification, setResendingVerification] = useState(false)
   const [needsVerification, setNeedsVerification] = useState(false)
-
+  const [attemps, setAttemps] = useState(0);
+  const [lockoutTime, setLockoutTime] = useState(0);
   if (isAuthenticated) return <Navigate to="/" />
-
+  
+  useEffect(() => {
+    if(lockoutTime > 0) {
+      const timer = setInterval(() => {
+        setLockoutTime(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [lockoutTime]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setLoginFailed(false)
     setSyncResult('')
-
+    if(lockoutTime > 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Acesso temporariamente bloqueado',
+        description: `Você excedeu o número máximo de tentativas. Tente novamente em ${lockout} segundos.`,
+      })
+      return;
+    }
     if (!isLogin) {
       if (!name.trim()) {
         setNameError('Nome é obrigatório')
@@ -100,14 +116,31 @@ export default function Login() {
     if (isLogin) {
       const { error, user: loggedUser } = await signIn(email, password)
       if (error) {
+        const newAttemps = attemps + 1;
+        setAttemps(newAttemps);
         setLoginFailed(true)
         setNeedsVerification(error?.code === 'UNVERIFIED_EXPIRED')
-        toast({
+        
+        // Se exceder 5 tentativas, bloqueia por 60 segundos;
+        if(newAttemps >= 5) {
+          setLockoutTime(60);
+          setAttemps(0); // Reset attempts after lockout
+          toast({
+            variant: 'destructive',
+            title: 'Muitas tentativas incorretas',
+            description: 'Você excedeu o número máximo de tentativas. Tente novamente em 60 segundos.',
+          })
+        }
+        else
+        {
+          toast({
           variant: 'destructive',
           title: 'Erro de autenticação',
           description: error.message || 'Verifique suas credenciais e tente novamente.',
         })
+        }
       } else {
+        setAttemps(0); // Reset attempts on successful login
         const record = loggedUser || pb.authStore.record
         if (record?.payment_status !== 'paid') {
           signOut()
