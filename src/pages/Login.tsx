@@ -401,7 +401,7 @@ export default function Login() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={lockoutTime ||loading}>
+            <Button type="submit" className="w-full" disabled={lockoutTime > 0 ||loading}>
               {lockoutTime > 0 ? `Aguarde ${lockoutTime}s` : loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Criar Conta'}
             </Button>
           </form>
