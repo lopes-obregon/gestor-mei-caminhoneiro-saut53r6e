@@ -413,24 +413,13 @@ export default function Login() {
             )}
 
             <Button type="submit" className="w-full" disabled={lockoutTime > 0 || loading}>
-<<<<<<< HEAD
-              {isLogin
-                ? 'Carregando...'
-                : isTimeBlocked
-                  ? `Aguarde ${lockoutTime}s`
-                  : loading
+              {isTimeBlocked
+                ? `Aguarde ${lockoutTime}s`
+                : loading
+                  ? 'Carregando...'
+                  : isLogin
                     ? 'Entrar'
-                    : 'Criar Conta'
-                    }
-=======
-              {() => {
-                if (isTimeBlocked) {
-                  return `Aguarde ${lockoutTime}s`
-                } else {
-                  return loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Cadastrar'
-                }
-              }}
->>>>>>> 37818cbe097119e882ce98bc9ea81db4c3769317
+                    : 'Cadastrar'}
             </Button>
           </form>
 
