@@ -67,6 +67,7 @@ export default function Login() {
   const [needsVerification, setNeedsVerification] = useState(false)
   const [attemps, setAttemps] = useState(0)
   const [lockoutTime, setLockoutTime] = useState(0)
+  const [isTimeBlocked, setIsTimeBlocked] = useState(false)
 
   useEffect(() => {
     if (lockoutTime > 0) {
@@ -130,6 +131,7 @@ try{
       if (newAttemps >= 5) {
         setLockoutTime(60)
         setAttemps(0) // Reset attempts after lockout
+        setIsTimeBlocked(true)
         toast({
           variant: 'destructive',
           title: 'Muitas tentativas incorretas',
@@ -145,6 +147,7 @@ try{
       }
     } else {
       setAttemps(0) // Reset attempts on successful login
+      setIsTimeBlocked(false);
       const record = loggedUser || pb.authStore.record
       if (record?.payment_status !== 'paid') {
         signOut()
@@ -410,7 +413,7 @@ setLoading(false)
             )}
 
             <Button type="submit" className="w-full" disabled={lockoutTime > 0 || loading}>
-              {lockoutTime > 0 ? `Aguarde ${lockoutTime}s` : loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Criar Conta'}
+              {isTimeBlocked ? `Aguarde ${lockoutTime}s` : loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Criar Conta'}
             </Button>
           </form>
 
