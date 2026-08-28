@@ -72,7 +72,14 @@ export default function Login() {
   useEffect(() => {
     if (lockoutTime > 0) {
       const timer = setInterval(() => {
-        setLockoutTime((prev) => prev - 1)
+        setLockoutTime((prev) => {
+          if (prev <= 1) {
+            setIsTimeBlocked(false); // liberar o bloqueio quando o tempo acabar
+            return 0;
+          }
+          return prev - 1;
+
+        })
       }, 1000)
       return () => clearInterval(timer)
     }
