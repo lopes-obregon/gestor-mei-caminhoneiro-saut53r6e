@@ -79,7 +79,7 @@ export default function Login() {
   }, [lockoutTime])
 
   if (isAuthenticated) return <Navigate to="/" />
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -413,14 +413,13 @@ export default function Login() {
             )}
 
             <Button type="submit" className="w-full" disabled={lockoutTime > 0 || loading}>
-              {()=>{
-                     if (isTimeBlocked){
-                        return `Aguarde ${lockoutTime}s`
-                      }
-                      else{
-                        return loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Cadastrar'
-                      }
-                    }}
+              {() => {
+                if (isTimeBlocked) {
+                  return `Aguarde ${lockoutTime}s`
+                } else {
+                  return loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Cadastrar'
+                }
+              }}
             </Button>
           </form>
 
