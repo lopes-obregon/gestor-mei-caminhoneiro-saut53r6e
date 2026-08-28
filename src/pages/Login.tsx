@@ -412,8 +412,7 @@ export default function Login() {
             )}
 
             <Button type="submit" className="w-full" disabled={lockoutTime > 0 || loading}>
-              {
-                loading
+              {loading
                 ? 'Carregando...'
                 : isTimeBlocked
                   ? `Aguarde ${lockoutTime}s`
