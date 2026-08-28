@@ -90,12 +90,11 @@ export default function Login() {
         title: 'Acesso temporariamente bloqueado',
         description: `Você excedeu o número máximo de tentativas. Tente novamente em ${lockoutTime} segundos.`,
       })
-      setLoading(false);
-      return;
-
+      setLoading(false)
+      return
     }
     //setLoading(true) //liga o loading para mostrar o spinner no botão
-    
+
     if (!isLogin) {
       if (!name.trim()) {
         setNameError('Nome é obrigatório')
