@@ -76,6 +76,10 @@ export default function Login() {
       }, 1000)
       return () => clearInterval(timer)
     }
+    else 
+    {
+      setIsLogin(true);
+    }
   }, [lockoutTime])
 
   if (isAuthenticated) return <Navigate to="/" />
