@@ -90,11 +90,10 @@ export default function Login() {
         title: 'Acesso temporariamente bloqueado',
         description: `Você excedeu o número máximo de tentativas. Tente novamente em ${lockoutTime} segundos.`,
       })
-      return;
-
+      return
     }
     setLoading(true) //liga o loading para mostrar o spinner no botão
-    
+
     if (!isLogin) {
       if (!name.trim()) {
         setNameError('Nome é obrigatório')
@@ -117,112 +116,111 @@ export default function Login() {
       }
       setAcceptedTermsError('')
     }
-try{
+    try {
+      if (isLogin) {
+        const { error, user: loggedUser } = await signIn(email, password)
+        if (error) {
+          const newAttemps = attemps + 1
+          setAttemps(newAttemps)
+          setLoginFailed(true)
+          setNeedsVerification(error?.code === 'UNVERIFIED_EXPIRED')
 
-  if (isLogin) {
-    const { error, user: loggedUser } = await signIn(email, password)
-    if (error) {
-      const newAttemps = attemps + 1
-      setAttemps(newAttemps)
-      setLoginFailed(true)
-      setNeedsVerification(error?.code === 'UNVERIFIED_EXPIRED')
-
-      // Se exceder 5 tentativas, bloqueia por 60 segundos;
-      if (newAttemps >= 5) {
-        setLockoutTime(60)
-        setAttemps(0) // Reset attempts after lockout
-        setIsTimeBlocked(true)
-        toast({
-          variant: 'destructive',
-          title: 'Muitas tentativas incorretas',
-          description:
-            'Você excedeu o número máximo de tentativas. Tente novamente em 60 segundos.',
-        })
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Erro de autenticação',
-          description: error.message || 'Verifique suas credenciais e tente novamente.',
-        })
-      }
-    } else {
-      setAttemps(0) // Reset attempts on successful login
-      setIsTimeBlocked(false);
-      const record = loggedUser || pb.authStore.record
-      if (record?.payment_status !== 'paid') {
-        signOut()
-        navigate('/restricted-access')
-        return
-      }
-    }
-  } else {
-    const { error } = await signUp(name.trim(), email, password, document, phone || undefined)
-    if (error) {
-      const isEmailNotUnique =
-        error?.data?.data?.email?.code === 'validation_not_unique' ||
-        error?.data?.email?.code === 'validation_not_unique' ||
-        error?.response?.data?.email?.code === 'validation_not_unique' ||
-        error?.data?.email?.message?.toLowerCase().includes('unique') ||
-        error?.data?.data?.email?.message?.toLowerCase().includes('unique')
-
-      if (isEmailNotUnique) {
-        toast({
-          variant: 'destructive',
-          title: 'E-mail já cadastrado',
-          description:
-            "Este e-mail já está cadastrado. Tente fazer login ou use 'Esqueci minha senha'.",
-        })
-      } else {
-        // Extrair mensagem específica ou geral do backend
-        const fieldData = error?.data?.data || error?.data || error?.response?.data
-        let errorDescription = error?.message || 'Erro ao criar conta. Tente novamente.'
-
-        if (fieldData && typeof fieldData === 'object') {
-          const fieldErrors = Object.entries(fieldData)
-            .map(([field, detail]: [string, any]) => {
-              const msg = detail?.message || detail
-              if (typeof msg === 'string') {
-                const fieldLabel =
-                  field === 'email'
-                    ? 'E-mail'
-                    : field === 'password'
-                      ? 'Senha'
-                      : field === 'document'
-                        ? 'CPF/CNPJ'
-                        : field === 'name'
-                          ? 'Nome'
-                          : field
-                return `${fieldLabel}: ${msg}`
-              }
-              return null
+          // Se exceder 5 tentativas, bloqueia por 60 segundos;
+          if (newAttemps >= 5) {
+            setLockoutTime(60)
+            setAttemps(0) // Reset attempts after lockout
+            setIsTimeBlocked(true)
+            toast({
+              variant: 'destructive',
+              title: 'Muitas tentativas incorretas',
+              description:
+                'Você excedeu o número máximo de tentativas. Tente novamente em 60 segundos.',
             })
-            .filter(Boolean)
-
-          if (fieldErrors.length > 0) {
-            errorDescription = fieldErrors.join('. ')
+          } else {
+            toast({
+              variant: 'destructive',
+              title: 'Erro de autenticação',
+              description: error.message || 'Verifique suas credenciais e tente novamente.',
+            })
+          }
+        } else {
+          setAttemps(0) // Reset attempts on successful login
+          setIsTimeBlocked(false)
+          const record = loggedUser || pb.authStore.record
+          if (record?.payment_status !== 'paid') {
+            signOut()
+            navigate('/restricted-access')
+            return
           }
         }
+      } else {
+        const { error } = await signUp(name.trim(), email, password, document, phone || undefined)
+        if (error) {
+          const isEmailNotUnique =
+            error?.data?.data?.email?.code === 'validation_not_unique' ||
+            error?.data?.email?.code === 'validation_not_unique' ||
+            error?.response?.data?.email?.code === 'validation_not_unique' ||
+            error?.data?.email?.message?.toLowerCase().includes('unique') ||
+            error?.data?.data?.email?.message?.toLowerCase().includes('unique')
 
-        toast({
-          variant: 'destructive',
-          title: 'Erro ao criar conta',
-          description: errorDescription,
-        })
+          if (isEmailNotUnique) {
+            toast({
+              variant: 'destructive',
+              title: 'E-mail já cadastrado',
+              description:
+                "Este e-mail já está cadastrado. Tente fazer login ou use 'Esqueci minha senha'.",
+            })
+          } else {
+            // Extrair mensagem específica ou geral do backend
+            const fieldData = error?.data?.data || error?.data || error?.response?.data
+            let errorDescription = error?.message || 'Erro ao criar conta. Tente novamente.'
+
+            if (fieldData && typeof fieldData === 'object') {
+              const fieldErrors = Object.entries(fieldData)
+                .map(([field, detail]: [string, any]) => {
+                  const msg = detail?.message || detail
+                  if (typeof msg === 'string') {
+                    const fieldLabel =
+                      field === 'email'
+                        ? 'E-mail'
+                        : field === 'password'
+                          ? 'Senha'
+                          : field === 'document'
+                            ? 'CPF/CNPJ'
+                            : field === 'name'
+                              ? 'Nome'
+                              : field
+                    return `${fieldLabel}: ${msg}`
+                  }
+                  return null
+                })
+                .filter(Boolean)
+
+              if (fieldErrors.length > 0) {
+                errorDescription = fieldErrors.join('. ')
+              }
+            }
+
+            toast({
+              variant: 'destructive',
+              title: 'Erro ao criar conta',
+              description: errorDescription,
+            })
+          }
+        } else {
+          toast({
+            title: 'Conta criada com sucesso!',
+            description: 'Enviamos um código de verificação para seu e-mail.',
+          })
+          navigate(`/auth/verify-code?email=${encodeURIComponent(email)}`)
+          return
+        }
       }
-    } else {
-      toast({
-        title: 'Conta criada com sucesso!',
-        description: 'Enviamos um código de verificação para seu e-mail.',
-      })
-      navigate(`/auth/verify-code?email=${encodeURIComponent(email)}`)
-      return
+    } catch (err) {
+      console.error('Erro inesperado:', err)
+    } finally {
+      setLoading(false)
     }
-  }
-} catch (err) {
-    console.error('Erro inesperado:', err)
-} finally {
-setLoading(false)
-}
   }
 
   const handleResendVerification = async () => {
@@ -413,7 +411,13 @@ setLoading(false)
             )}
 
             <Button type="submit" className="w-full" disabled={lockoutTime > 0 || loading}>
-              {isTimeBlocked ? `Aguarde ${lockoutTime}s` : loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Criar Conta'}
+              {isTimeBlocked
+                ? `Aguarde ${lockoutTime}s`
+                : loading
+                  ? 'Carregando...'
+                  : isLogin
+                    ? 'Entrar'
+                    : 'Criar Conta'}
             </Button>
           </form>
 
