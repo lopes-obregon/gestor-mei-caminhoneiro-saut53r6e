@@ -413,10 +413,10 @@ export default function Login() {
             )}
 
             <Button type="submit" className="w-full" disabled={lockoutTime > 0 || loading}>
-              {isTimeBlocked
-                ? `Aguarde ${lockoutTime}s`
-                : loading
-                  ? 'Carregando...'
+              {loading
+                ? 'Carregando...'
+                : isTimeBlocked
+                  ? `Aguarde ${lockoutTime}s`
                   : isLogin
                     ? 'Entrar'
                     : 'Criar Conta'}
