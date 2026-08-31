@@ -72,9 +72,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!validateDocument(document)) {
         return { error: { message: 'CPF ou CNPJ inválido.' } }
       }
-
+      //console.log('--------------------------------------------------');
+      //console.log('Signing up user with document:', document)
       const external_id = generateExternalId()
-      await pb.collection('users').create({
+      const record = await pb.collection('users').create({
         name,
         email,
         password,
@@ -83,6 +84,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         document,
         phone: phone || undefined,
       })
+      console.log('--------------------------------------------------')
+      console.log('User signed up successfully:', record)
 
       return { error: null }
     } catch (error: any) {
