@@ -15,7 +15,7 @@ onRecordAfterCreateSuccess((e) => {
   let url = baseUrl
   if (url.endsWith('/')) url = url.slice(0, -1)
   url = url + '/users'
-  //console.log('url completa:' + url)
+  console.log('url completa:' + url)
   try {
     $http.send({
       url: url,
