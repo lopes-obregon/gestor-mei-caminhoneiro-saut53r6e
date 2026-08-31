@@ -1,8 +1,9 @@
 // Todo novo usuário já nasce verificado e com payment_status = "paid".
-// O "mês grátis" passa a ser refletido diretamente como pagamento ativo,
-// dispensando a janela de 30 dias baseada em strftime.
-onRecordCreateRequest((e) => {
+// Usa onRecordCreate (hook de banco) porque onRecordCreateRequest roda ANTES
+// da validação do formulário e alterar "verified" ali dispara
+// validation_values_mismatch (issue #6051 do PocketBase).
+onRecordCreate((e) => {
   e.record.setVerified(true)
   e.record.set('payment_status', 'paid')
-  return e.next()
+  $app.save(e.record)
 }, 'users')
