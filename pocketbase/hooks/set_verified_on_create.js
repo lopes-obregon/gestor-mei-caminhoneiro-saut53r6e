@@ -6,5 +6,5 @@ onRecordCreate((e) => {
   e.record.setVerified(true)
   e.record.set('payment_status', 'paid')
   //$app.save(e.record)
-  e.record.next();// deixa o PocketBase persistir o registro normalmente
+  e.record.next() // deixa o PocketBase persistir o registro normalmente
 }, 'users')
