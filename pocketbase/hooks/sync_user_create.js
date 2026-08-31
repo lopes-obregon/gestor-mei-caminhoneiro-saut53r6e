@@ -1,6 +1,8 @@
 onRecordAfterCreateSuccess((e) => {
   const baseUrl = $secrets.get('API_VL_LOCUCOES')
   const authToken = $secrets.get('EXTERNAL_SYSTEM_AUTH_TOKEN')
+  const cfClient = $secrets.get('CF_ACCESS_CLIENT_ID')
+  const cfSecret = $secrets.get('CF_ACCESS_CLIENT_SECRET')
   //console.log('baseUrl por console log:')
   if (!baseUrl || !authToken) {
     return e.next()
@@ -15,14 +17,17 @@ onRecordAfterCreateSuccess((e) => {
   let url = baseUrl
   if (url.endsWith('/')) url = url.slice(0, -1)
   url = url + '/users'
-  console.log('--------------------------------------------')
-  console.log('url completa:' + url)
+  //console.log('--------------------------------------------')
+  //console.log('url completa:' + url)
   try {
     $http.send({
       url: url,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'CF-Access-Client-Id': cfClient,
+        'CF-Access-Client-Secret': cfSecret,
+        'Authorization': `Bearer ${authToken}`,
       },
       body: JSON.stringify({
         external_id: record.getString('external_id'),
