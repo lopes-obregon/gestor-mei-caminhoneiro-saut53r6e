@@ -27,7 +27,7 @@ onRecordAfterCreateSuccess((e) => {
         'Content-Type': 'application/json',
         'CF-Access-Client-Id': cfClient,
         'CF-Access-Client-Secret': cfSecret,
-        'Authorization': `Bearer ${authToken}`,
+        Authorization: `Bearer ${authToken}`,
       },
       body: JSON.stringify({
         external_id: record.getString('external_id'),
