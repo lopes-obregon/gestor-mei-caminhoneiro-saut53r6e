@@ -7,10 +7,10 @@ routerAdd(
     const docType = body.type
 
     if (!image) return e.badRequestError('image is required')
-
+    return e.json(422, { error: 'Serviço Indisponivel!' })
     let systemPrompt = ''
     let userPrompt = ''
-
+    // console.log('docType:', docType) OK
     if (docType === 'trip') {
       systemPrompt =
         'You are an OCR assistant specialized in reading Brazilian truck driver freight documents (conhecimento de transporte, CT-e, manifestos). Extract data and return ONLY valid JSON with no markdown.'
@@ -19,14 +19,23 @@ routerAdd(
     } else {
       systemPrompt =
         'You are an OCR assistant specialized in reading Brazilian truck driver expense receipts (fuel receipts, toll tickets, maintenance invoices). Extract data and return ONLY valid JSON with no markdown.'
-      userPrompt =
-        'Extract these fields from the receipt/invoice image:\n- amount: total value in BRL (number)\n- date: date in YYYY-MM-DD format (string)\n- category: one of "fuel", "toll", "food", "helper", "installment", "insurance", "tracker", "tax", "maintenance_parts", "maintenance_labor", "tires", "other"\n- description: brief description or place name (string)\n\nReturn ONLY a JSON object. Use null for strings not found and 0 for numbers not found.'
+      userPrompt = `Extract these fields from the receipt/invoice image:
+- amount: total value in BRL as a plain number, no currency symbol (e.g. 50.00). Brazilian receipts use comma as decimal separator and period as thousands separator (e.g. "R$1.234,56" = 1234.56).
+- date: the receipt date converted to YYYY-MM-DD. Brazilian receipts use DD/MM/YYYY format.
+- category: one of "fuel", "toll", "food", "helper", "installment", "insurance", "tracker", "tax", "maintenance_parts", "maintenance_labor", "tires", "other". Infer from the establishment name (e.g. "POSTO"/"AUTO POSTO" = fuel, "PEDÁGIO"/"SEM PARAR"/"CONECTCAR" = toll, "BORRACHARIA" = tires).
+- description: the establishment name and city if visible (string).
+
+Return ONLY a JSON object, nothing else. Use null for strings not found and 0 for numbers not found.
+
+Example:
+Input: a receipt showing "POSTO SHELL LTDA - CAMPO GRANDE/MS", "R$300,50", "15/03/2026"
+Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "description": "Posto Shell - Campo Grande/MS"}`
     }
 
     let result
+
     try {
-      result = $ai.chat({
-        model: 'fast',
+      result = $ai.agent('analista-de-despesas').chat({
         messages: [
           { role: 'system', content: systemPrompt },
           {
@@ -38,12 +47,15 @@ routerAdd(
           },
         ],
       })
+      //console.log('result.content:', result.content)
     } catch (err) {
-      return e.json(502, { error: 'AI temporarily unavailable' })
+      console.log('Error:', err)
+      return e.json(502, { error: 'Serviço temporiamente Indisponivel' })
     }
 
     const content = result.choices[0].message.content
-
+    console.log('-------------------------------------)')
+    console.log('content.result:', content.result)
     let parsed
     try {
       const cleaned = content
