@@ -35,8 +35,7 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
     let result
 
     try {
-      result = $ai.chat({
-        model: 'gpt-4o-mini',
+      result = $ai.agent('SEU_SLUG_AQUI').chat({
         messages: [
           { role: 'system', content: systemPrompt },
           {
@@ -56,7 +55,7 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
 
     const content = result.choices[0].message.content
     console.log('-------------------------------------)')
-    console.log('content:', content)
+    console.log('content.result:', content.result)
     let parsed
     try {
       const cleaned = content
