@@ -36,24 +36,67 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
 
     const promptMessage = `${systemPrompt}\n\n${userPrompt}`
 
-    let result
+    let content = ''
 
+    // 1. Tentar primeiro via Skip Cloud Agent nativo 'analista-de-despesas'
     try {
-      result = $ai.agent('analista-de-despesas').chat({
+      const agentRes = $ai.agent('analista-de-despesas').chat({
         user_id: userId,
         message: promptMessage,
         images: [image],
       })
-    } catch (err) {
-      console.log('Error calling agent:', err)
-      return e.json(502, { error: 'Serviço temporiamente Indisponivel' })
+      if (agentRes && typeof agentRes.content === 'string') {
+        content = agentRes.content
+      }
+    } catch (agentErr) {
+      console.log('Agent call failed, attempting fallback to $ai.chat:', agentErr)
     }
 
-    const content = result && typeof result.content === 'string' ? result.content : ''
-    let parsed
+    // 2. Se o agente não retornou conteúdo ou falhou, usar fallback direto via $ai.chat
+    if (!content) {
+      try {
+        const chatRes = $ai.chat({
+          model: 'fast',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: userPrompt },
+                { type: 'image_url', image_url: { url: image } },
+              ],
+            },
+          ],
+        })
+        if (
+          chatRes &&
+          chatRes.choices &&
+          chatRes.choices[0] &&
+          chatRes.choices[0].message &&
+          typeof chatRes.choices[0].message.content === 'string'
+        ) {
+          content = chatRes.choices[0].message.content
+        }
+      } catch (chatErr) {
+        console.log('Fallback $ai.chat also failed:', chatErr)
+        return e.json(502, {
+          error:
+            'Serviço de análise de imagem temporariamente indisponível. Tente novamente em instantes.',
+        })
+      }
+    }
+
+    if (!content) {
+      return e.json(422, {
+        error:
+          'Não foi possível ler os dados da imagem. Por favor, tire uma foto mais clara e tente novamente.',
+      })
+    }
+
+    let parsed = null
     try {
       const cleaned = content
-        .replace(/```json\s*/g, '')
+        .replace(/```json\s*/gi, '')
         .replace(/```\s*/g, '')
         .trim()
       parsed = JSON.parse(cleaned)
@@ -63,17 +106,16 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
         try {
           parsed = JSON.parse(match[0])
         } catch (e2) {
-          return e.json(422, {
-            error:
-              'Não foi possível ler os dados. Por favor, tire uma foto mais clara e tente novamente.',
-          })
+          parsed = null
         }
-      } else {
-        return e.json(422, {
-          error:
-            'Não foi possível ler os dados. Por favor, tire uma foto mais clara e tente novamente.',
-        })
       }
+    }
+
+    if (!parsed || typeof parsed !== 'object') {
+      return e.json(422, {
+        error:
+          'Não foi possível extrair dados válidos do documento. Por favor, tire uma foto mais nítida e enquadrada.',
+      })
     }
 
     let hasAnyData = false
@@ -85,10 +127,11 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
         break
       }
     }
+
     if (!hasAnyData) {
       return e.json(422, {
         error:
-          'Não foi possível ler os dados. Por favor, tire uma foto mais clara e tente novamente.',
+          'Nenhum dado legível foi encontrado no documento. Por favor, verifique a iluminação e tire outra foto.',
       })
     }
 

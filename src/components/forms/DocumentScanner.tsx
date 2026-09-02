@@ -50,6 +50,7 @@ export function DocumentScanner({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [data, setData] = useState<ExtractedData | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -58,12 +59,14 @@ export function DocumentScanner({
     setData(null)
     setImagePreview(null)
     setError(false)
+    setErrorMessage(null)
     setLoading(false)
   }
 
   const handleFile = async (file: File) => {
     setLoading(true)
     setError(false)
+    setErrorMessage(null)
     setData(null)
     setImagePreview(null)
     setOpen(true)
@@ -72,8 +75,12 @@ export function DocumentScanner({
       setImagePreview(base64)
       const result = await extractReceipt(base64, type)
       setData(result.data)
-    } catch {
+    } catch (err: any) {
       setError(true)
+      setErrorMessage(
+        err?.message ||
+          'Não foi possível ler os dados. Por favor, tire uma foto mais clara e tente novamente.',
+      )
     } finally {
       setLoading(false)
     }
@@ -135,9 +142,16 @@ export function DocumentScanner({
           {error && !loading && (
             <div className="flex flex-col items-center gap-4 py-8">
               <AlertCircle className="w-8 h-8 text-destructive" />
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Documento escaneado"
+                  className="w-full max-h-36 object-contain rounded-lg border opacity-60"
+                />
+              )}
               <p className="text-sm text-center text-muted-foreground">
-                Não foi possível ler os dados. Por favor, tire uma foto mais clara e tente
-                novamente.
+                {errorMessage ||
+                  'Não foi possível ler os dados. Por favor, tire uma foto mais clara e tente novamente.'}
               </p>
               <Button onClick={handleRetake} variant="outline">
                 <RefreshCw className="w-4 h-4 mr-2" />
