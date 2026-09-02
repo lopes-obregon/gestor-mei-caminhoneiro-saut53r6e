@@ -52,7 +52,9 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
     }
 
     const content = result.choices[0].message.content
-
+    console.log('result:', result)
+    console.log('-------------------------------------)')
+    console.log('content:', content)
     let parsed
     try {
       const cleaned = content
