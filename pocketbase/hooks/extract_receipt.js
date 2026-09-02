@@ -7,10 +7,12 @@ routerAdd(
     const docType = body.type
 
     if (!image) return e.badRequestError('image is required')
-    return e.json(422, { error: 'Serviço Indisponivel!' })
+
+    const userId = e.auth?.id
+    if (!userId) return e.unauthorizedError('auth required')
+
     let systemPrompt = ''
     let userPrompt = ''
-    // console.log('docType:', docType) OK
     if (docType === 'trip') {
       systemPrompt =
         'You are an OCR assistant specialized in reading Brazilian truck driver freight documents (conhecimento de transporte, CT-e, manifestos). Extract data and return ONLY valid JSON with no markdown.'
@@ -32,30 +34,22 @@ Input: a receipt showing "POSTO SHELL LTDA - CAMPO GRANDE/MS", "R$300,50", "15/0
 Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "description": "Posto Shell - Campo Grande/MS"}`
     }
 
+    const promptMessage = `${systemPrompt}\n\n${userPrompt}`
+
     let result
 
     try {
       result = $ai.agent('analista-de-despesas').chat({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: userPrompt },
-              { type: 'image_url', image_url: { url: image } },
-            ],
-          },
-        ],
+        user_id: userId,
+        message: promptMessage,
+        images: [image],
       })
-      //console.log('result.content:', result.content)
     } catch (err) {
-      console.log('Error:', err)
+      console.log('Error calling agent:', err)
       return e.json(502, { error: 'Serviço temporiamente Indisponivel' })
     }
 
-    const content = result.choices[0].message.content
-    console.log('-------------------------------------)')
-    console.log('content.result:', content.result)
+    const content = result && typeof result.content === 'string' ? result.content : ''
     let parsed
     try {
       const cleaned = content
