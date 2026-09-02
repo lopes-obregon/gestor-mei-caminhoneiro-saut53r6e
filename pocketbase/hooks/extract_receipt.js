@@ -36,7 +36,7 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
 
     try {
       result = $ai.chat({
-        model: 'fast',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           {
