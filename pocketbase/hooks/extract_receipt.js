@@ -10,7 +10,7 @@ routerAdd(
 
     let systemPrompt = ''
     let userPrompt = ''
-
+    console.log('docType:', docType)
     if (docType === 'trip') {
       systemPrompt =
         'You are an OCR assistant specialized in reading Brazilian truck driver freight documents (conhecimento de transporte, CT-e, manifestos). Extract data and return ONLY valid JSON with no markdown.'
