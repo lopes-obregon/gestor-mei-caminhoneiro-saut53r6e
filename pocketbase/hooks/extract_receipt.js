@@ -10,7 +10,7 @@ routerAdd(
 
     let systemPrompt = ''
     let userPrompt = ''
-    console.log('docType:', docType)
+    // console.log('docType:', docType) OK
     if (docType === 'trip') {
       systemPrompt =
         'You are an OCR assistant specialized in reading Brazilian truck driver freight documents (conhecimento de transporte, CT-e, manifestos). Extract data and return ONLY valid JSON with no markdown.'
@@ -33,7 +33,9 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
     }
 
     let result
+    console.log('cHEGOU AQUI!')
     try {
+      console.log('Entrou no try!')
       console.log('AI:', $ai)
       result = $ai.chat({
         model: 'fast',
