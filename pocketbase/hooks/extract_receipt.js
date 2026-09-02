@@ -7,7 +7,7 @@ routerAdd(
     const docType = body.type
 
     if (!image) return e.badRequestError('image is required')
-
+    return e.json(422, error:'Serviço Indisponivel!');
     let systemPrompt = ''
     let userPrompt = ''
     // console.log('docType:', docType) OK
