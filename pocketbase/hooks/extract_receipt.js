@@ -34,6 +34,7 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
 
     let result
     try {
+      console.log('AI:', $ai)
       result = $ai.chat({
         model: 'fast',
         messages: [
