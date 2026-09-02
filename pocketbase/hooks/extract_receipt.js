@@ -48,7 +48,7 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
           },
         ],
       })
-      console.log('result.content:', result.content)
+      //console.log('result.content:', result.content)
     } catch (err) {
       return e.json(502, { error: 'AI temporarily unavailable' })
     }
