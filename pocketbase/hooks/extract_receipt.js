@@ -35,7 +35,7 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
     let result
 
     try {
-      result = $ai.agent('SEU_SLUG_AQUI').chat({
+      result = $ai.agent('analista-de-despesas').chat({
         messages: [
           { role: 'system', content: systemPrompt },
           {
