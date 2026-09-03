@@ -7,78 +7,174 @@ routerAdd(
     const docType = body.type
 
     if (!image) return e.badRequestError('image is required')
-    return e.json(422, { error: 'Serviço Indisponivel!' })
+
+    const userId = e.auth?.id
+    if (!userId) return e.unauthorizedError('auth required')
+
     let systemPrompt = ''
     let userPrompt = ''
-    // console.log('docType:', docType) OK
     if (docType === 'trip') {
       systemPrompt =
-        'You are an OCR assistant specialized in reading Brazilian truck driver freight documents (conhecimento de transporte, CT-e, manifestos). Extract data and return ONLY valid JSON with no markdown.'
+        'Você é um assistente especialista em OCR e extração de dados de documentos de frete e transporte rodoviário de cargas no Brasil (CT-e, Conhecimento de Transporte, MDF-e, Contrato de Frete). Responda EXCLUSIVAMENTE com um objeto JSON válido, sem qualquer texto adicional ou blocos de código markdown.'
       userPrompt =
-        'Extract these fields from the freight document image:\n- company: transport company or client name (string)\n- origin: origin city (string)\n- destination: destination city (string)\n- date: date in YYYY-MM-DD format (string)\n- distance_km: distance in km (number, 0 if not found)\n- gross_value: gross freight value in BRL (number, 0 if not found)\n- advance_value: advance payment in BRL (number, 0 if not found)\n- advance_type: one of "fuel", "toll", "cash", "none"\n\nReturn ONLY a JSON object. Use null for strings not found and 0 for numbers not found.'
+        'Analise a imagem deste documento de frete e extraia os seguintes campos:\n- company: nome da transportadora, embarcador ou cliente (string ou null se não encontrar)\n- origin: cidade e UF de origem (string ou null)\n- destination: cidade e UF de destino (string ou null)\n- date: data do documento no formato YYYY-MM-DD (string ou null). Converta de DD/MM/AAAA para YYYY-MM-DD.\n- distance_km: distância em km (número, 0 se não encontrar)\n- gross_value: valor bruto do frete em BRL como número decimal com ponto (ex: 1500.00, 0 se não encontrar)\n- advance_value: adiantamento em BRL como número decimal com ponto (ex: 500.00, 0 se não encontrar)\n- advance_type: "fuel", "toll", "cash" ou "none"\n\nRetorne APENAS o JSON puro no formato: {"company": ..., "origin": ..., "destination": ..., "date": ..., "distance_km": ..., "gross_value": ..., "advance_value": ..., "advance_type": ...}'
     } else {
       systemPrompt =
-        'You are an OCR assistant specialized in reading Brazilian truck driver expense receipts (fuel receipts, toll tickets, maintenance invoices). Extract data and return ONLY valid JSON with no markdown.'
-      userPrompt = `Extract these fields from the receipt/invoice image:
-- amount: total value in BRL as a plain number, no currency symbol (e.g. 50.00). Brazilian receipts use comma as decimal separator and period as thousands separator (e.g. "R$1.234,56" = 1234.56).
-- date: the receipt date converted to YYYY-MM-DD. Brazilian receipts use DD/MM/YYYY format.
-- category: one of "fuel", "toll", "food", "helper", "installment", "insurance", "tracker", "tax", "maintenance_parts", "maintenance_labor", "tires", "other". Infer from the establishment name (e.g. "POSTO"/"AUTO POSTO" = fuel, "PEDÁGIO"/"SEM PARAR"/"CONECTCAR" = toll, "BORRACHARIA" = tires).
-- description: the establishment name and city if visible (string).
+        'Você é um assistente especialista em OCR e extração de dados de comprovantes fiscais e térmicos brasileiros (cupons fiscais NFC-e/SAT, comprovantes de maquininha de cartão "VIA CLIENTE", recibos de pedágio e postos de combustível). Responda EXCLUSIVAMENTE com um objeto JSON válido, sem nenhum texto explicativo antes ou depois e sem markdown.'
+      userPrompt = `Analise a imagem deste comprovante ou recibo térmico brasileiro e extraia os dados:
 
-Return ONLY a JSON object, nothing else. Use null for strings not found and 0 for numbers not found.
+Regras de extração:
+1. "description": Nome limpo e claro do estabelecimento comercial (ex: "Auto Posto Dakota - Dourados/MS", "Posto Ipiranga", "Pedágio CCR"). Procure atenciosamente por nomes de postos de combustível ("AUTO POSTO", "POSTO", bandeiras como Shell, Ipiranga, Petrobras, BR, etc.) e cidades/UF. Desconsidere o nome da adquirente/maquininha (ex: "Laranjinha", "Cielo", "Rede", "Stone", "PagSeguro").
+2. "amount": Valor total pago em Reais (BRL) como número decimal com ponto (ex: 50.00, 1234.56). Comprovantes brasileiros usam vírgula como separador decimal (ex: "R$ 50,00" -> 50.00, "R$ 1.250,50" -> 1250.50). Remova símbolos monetários e converta a vírgula para ponto.
+3. "date": Data da transação no formato estrito "YYYY-MM-DD". Comprovantes brasileiros usam "DD/MM/AAAA" ou "DD/MM/AA" (ex: "31/08/2026" -> "2026-08-31").
+4. "category": Identifique a categoria da despesa dentre: "fuel", "toll", "food", "helper", "installment", "insurance", "tracker", "tax", "maintenance_parts", "maintenance_labor", "tires", "other".
+   - "fuel": postos de combustível, abastecimento, diesel, gasolina, "AUTO POSTO", "POSTO DE MOLAS", Shell, Ipiranga, etc.
+   - "toll": pedágios, praças de pedágio, Sem Parar, ConectCar, Veloe, AutoBAn, CCR, etc.
+   - "food": restaurantes, lanchonetes, churrascarias, refeições em postos.
+   - "tires": borracharia, recapagem, pneus.
+   - "maintenance_parts" / "maintenance_labor": oficinas, autopeças, mecânica.
 
-Example:
-Input: a receipt showing "POSTO SHELL LTDA - CAMPO GRANDE/MS", "R$300,50", "15/03/2026"
-Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "description": "Posto Shell - Campo Grande/MS"}`
+Retorne APENAS um objeto JSON no formato:
+{
+  "amount": 50.00,
+  "date": "2026-08-31",
+  "category": "fuel",
+  "description": "Auto Posto Dakota - Dourados/MS"
+}
+Use null para strings não encontradas e 0 para valores numéricos não encontrados.`
     }
 
-    let result
+    const promptMessage = `${systemPrompt}\n\n${userPrompt}`
 
+    let content = ''
+
+    // 1. Tentar primeiro via Skip Cloud Agent nativo 'analista-de-despesas'
     try {
-      result = $ai.agent('analista-de-despesas').chat({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: userPrompt },
-              { type: 'image_url', image_url: { url: image } },
-            ],
-          },
-        ],
+      const agentRes = $ai.agent('analista-de-despesas').chat({
+        user_id: userId,
+        message: promptMessage,
+        images: [image],
       })
-      //console.log('result.content:', result.content)
-    } catch (err) {
-      console.log('Error:', err)
-      return e.json(502, { error: 'Serviço temporiamente Indisponivel' })
+      if (agentRes && typeof agentRes.content === 'string') {
+        content = agentRes.content
+      }
+    } catch (agentErr) {
+      console.log('Agent call failed, attempting fallback to $ai.chat:', agentErr)
     }
 
-    const content = result.choices[0].message.content
-    console.log('-------------------------------------)')
-    console.log('content.result:', content.result)
-    let parsed
+    // 2. Se o agente não retornou conteúdo ou falhou, usar fallback direto via $ai.chat
+    if (!content) {
+      try {
+        const chatRes = $ai.chat({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: userPrompt },
+                { type: 'image_url', image_url: { url: image } },
+              ],
+            },
+          ],
+        })
+        if (
+          chatRes &&
+          chatRes.choices &&
+          chatRes.choices[0] &&
+          chatRes.choices[0].message &&
+          typeof chatRes.choices[0].message.content === 'string'
+        ) {
+          content = chatRes.choices[0].message.content
+        }
+      } catch (chatErr) {
+        console.log('Fallback $ai.chat also failed:', chatErr)
+        return e.json(502, {
+          error:
+            'Serviço de análise de imagem temporariamente indisponível. Tente novamente em instantes.',
+        })
+      }
+    }
+
+    if (!content) {
+      return e.json(422, {
+        error:
+          'Não foi possível ler os dados da imagem. Por favor, tire uma foto mais clara e tente novamente.',
+      })
+    }
+
+    let parsed = null
     try {
-      const cleaned = content
-        .replace(/```json\s*/g, '')
-        .replace(/```\s*/g, '')
+      let cleaned = content.trim()
+      // Remove markdown blocks ```json ... ```
+      cleaned = cleaned
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```$/i, '')
         .trim()
       parsed = JSON.parse(cleaned)
     } catch (err) {
-      const match = content.match(/\{[\s\S]*\}/)
-      if (match) {
+      // Tentar encontrar o bloco JSON mais abrangente entre { e }
+      const firstBrace = content.indexOf('{')
+      const lastBrace = content.lastIndexOf('}')
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
         try {
-          parsed = JSON.parse(match[0])
+          const jsonSubstring = content.substring(firstBrace, lastBrace + 1)
+          parsed = JSON.parse(jsonSubstring)
         } catch (e2) {
-          return e.json(422, {
-            error:
-              'Não foi possível ler os dados. Por favor, tire uma foto mais clara e tente novamente.',
-          })
+          parsed = null
         }
+      }
+    }
+
+    if (!parsed || typeof parsed !== 'object') {
+      return e.json(422, {
+        error:
+          'Não foi possível extrair dados válidos do documento. Por favor, tire uma foto mais nítida e enquadrada.',
+      })
+    }
+
+    // Normalização e sanitização defensiva dos campos extraídos
+    if (docType === 'expense') {
+      // Normalizar amount se vier como string (ex: "50,00" ou "R$ 50,00")
+      if (typeof parsed.amount === 'string') {
+        const cleanedAmount = parsed.amount
+          .replace(/[^\d,\.]/g, '')
+          .replace(/\./g, '')
+          .replace(',', '.')
+        const num = parseFloat(cleanedAmount)
+        parsed.amount = !isNaN(num) ? num : 0
+      } else if (typeof parsed.amount === 'number') {
+        parsed.amount = parsed.amount
       } else {
-        return e.json(422, {
-          error:
-            'Não foi possível ler os dados. Por favor, tire uma foto mais clara e tente novamente.',
-        })
+        parsed.amount = 0
+      }
+
+      // Normalizar data se vier em formato DD/MM/YYYY
+      if (typeof parsed.date === 'string') {
+        const dMatch = parsed.date.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+        if (dMatch) {
+          parsed.date = `${dMatch[3]}-${dMatch[2]}-${dMatch[1]}`
+        }
+      }
+    } else if (docType === 'trip') {
+      ;['gross_value', 'advance_value', 'distance_km'].forEach((f) => {
+        if (typeof parsed[f] === 'string') {
+          const cleanedNum = parsed[f]
+            .replace(/[^\d,\.]/g, '')
+            .replace(/\./g, '')
+            .replace(',', '.')
+          const num = parseFloat(cleanedNum)
+          parsed[f] = !isNaN(num) ? num : 0
+        } else if (typeof parsed[f] !== 'number') {
+          parsed[f] = 0
+        }
+      })
+
+      if (typeof parsed.date === 'string') {
+        const dMatch = parsed.date.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+        if (dMatch) {
+          parsed.date = `${dMatch[3]}-${dMatch[2]}-${dMatch[1]}`
+        }
       }
     }
 
@@ -91,10 +187,11 @@ Output: {"amount": 300.50, "date": "2026-03-15", "category": "fuel", "descriptio
         break
       }
     }
+
     if (!hasAnyData) {
       return e.json(422, {
         error:
-          'Não foi possível ler os dados. Por favor, tire uma foto mais clara e tente novamente.',
+          'Nenhum dado legível foi encontrado no documento. Por favor, verifique a iluminação e tire outra foto.',
       })
     }
 

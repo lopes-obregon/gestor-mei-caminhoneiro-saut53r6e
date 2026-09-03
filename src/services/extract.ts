@@ -22,11 +22,44 @@ export const extractReceipt = async (
   imageBase64: string,
   type: 'expense' | 'trip',
 ): Promise<ExtractResult> => {
-  return pb.send('/backend/v1/extract-receipt', {
-    method: 'POST',
-    body: JSON.stringify({ image: imageBase64, type }),
-    headers: { 'Content-Type': 'application/json' },
-  })
+  try {
+    return await pb.send('/backend/v1/extract-receipt', {
+      method: 'POST',
+      body: JSON.stringify({ image: imageBase64, type }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+  } catch (err: any) {
+    const errorData = err?.response?.data || err?.data
+    const serverMessage =
+      (typeof errorData === 'object' && errorData?.error) ||
+      (typeof errorData === 'string' && errorData) ||
+      err?.response?.message ||
+      err?.message
+
+    if (
+      serverMessage &&
+      !serverMessage.startsWith('HTTP ') &&
+      !serverMessage.includes('Fetch Error')
+    ) {
+      throw new Error(serverMessage)
+    }
+
+    if (err?.status === 422) {
+      throw new Error(
+        'Não foi possível ler os dados da imagem. Por favor, tire uma foto mais clara e tente novamente.',
+      )
+    }
+
+    if (err?.status === 502 || err?.status === 503) {
+      throw new Error(
+        'Serviço de análise temporariamente indisponível. Tente novamente em instantes.',
+      )
+    }
+
+    throw new Error(
+      serverMessage || 'Erro ao processar imagem. Verifique sua conexão e tente novamente.',
+    )
+  }
 }
 
 export async function resizeImage(file: File, maxSize: number = 1280): Promise<string> {
