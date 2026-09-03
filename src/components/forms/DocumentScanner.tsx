@@ -10,6 +10,7 @@ import {
 import { Camera, Loader2, AlertCircle, RefreshCw, Check } from 'lucide-react'
 import { extractReceipt, resizeImage, type ExtractedData } from '@/services/extract'
 import { CATEGORY_LABELS } from '@/types'
+import { ExtractReceiptOcr } from '@/services/ocr'
 
 const FIELD_LABELS: Record<string, string> = {
   amount: 'Valor',
@@ -73,8 +74,9 @@ export function DocumentScanner({
     try {
       const base64 = await resizeImage(file)
       setImagePreview(base64)
-      const result = await extractReceipt(base64, type)
-      setData(result.data)
+      const result = await ExtractReceiptOcr(file);
+      console.log("Resultado do OCR com filtros:", result); // Log the result for debugging
+      setData(result)
     } catch (err: any) {
       setError(true)
       setErrorMessage(
