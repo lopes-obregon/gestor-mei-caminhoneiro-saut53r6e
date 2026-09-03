@@ -57,7 +57,7 @@ export function ExpenseForm({ onSuccess, expense }: ExpenseFormProps) {
   }, [expense])
   const NormalizeDate = (dateString: string): string => {
     const [day, month, year] = dateString.split('/')
-    return `${year}-${month}-${day}`;
+    return `${year}-${month}-${day}`
   }
   const handleExtracted = (data: any) => {
     setFormData((prev) => ({

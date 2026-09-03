@@ -74,8 +74,8 @@ export function DocumentScanner({
     try {
       const base64 = await resizeImage(file)
       setImagePreview(base64)
-      const result = await ExtractReceiptOcr(file);
-      console.log("Resultado do OCR com filtros:", result); // Log the result for debugging
+      const result = await ExtractReceiptOcr(file)
+      console.log('Resultado do OCR com filtros:', result) // Log the result for debugging
       setData(result)
     } catch (err: any) {
       setError(true)
