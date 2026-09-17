@@ -27,6 +27,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TripForm } from './forms/TripForm'
 import { ExpenseForm } from './forms/ExpenseForm'
+import { ExpenseAssistantChat } from './ExpenseAssistantChat'
 import { useState } from 'react'
 
 function formatNotificationDate(dateStr: string) {
@@ -456,6 +457,9 @@ export default function Layout() {
         <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
           <Outlet />
         </div>
+
+        {/* Chat Flutuante do Analista de Despesas e Assistente MEI */}
+        <ExpenseAssistantChat />
       </main>
 
       {/* Mobile Bottom Nav */}
