@@ -29,7 +29,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <Routes>
-            <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />}/>
+            <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/auth/verify-code" element={<VerifyCode />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />

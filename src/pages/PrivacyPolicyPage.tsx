@@ -1,21 +1,20 @@
+export default function PrivacyPolicyPage() {
+  const metadata = {
+    title: 'Política de Privacidade | VlsoluçõesIA',
+    description: 'Política de Privacidade do Gestor Caminhoneiro.',
+    companyName: 'VlsoluçõesIA',
+    companyWebsite: '',
+    ownerName: 'Renan',
+    whatsappLink: 'https://wa.me/5567981538470',
+  }
+  //const companyName = "VlsoluçõesIA";
+  const dynamic = 'force-dynamic'
+  const updatedAt = new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'long',
+    timeZone: 'America/Cuiaba',
+  }).format(new Date())
 
-
-
-export default function PrivacyPolicyPage()
-{
-    const metadata = { 
-        title: "Política de Privacidade | VlsoluçõesIA", 
-        description: "Política de Privacidade do Gestor Caminhoneiro.",
-        companyName: "VlsoluçõesIA",
-        companyWebsite: "",
-        ownerName:"Renan",
-        whatsappLink:"https://wa.me/5567981538470"
-    };
-    //const companyName = "VlsoluçõesIA";
-    const dynamic = "force-dynamic";
-    const updatedAt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: "America/Cuiaba" }).format(new Date());
-    
-    return (
+  return (
     <div>
         <article className="legal-content">
            
@@ -33,7 +32,6 @@ export default function PrivacyPolicyPage()
     </div> 
     );
 }
-
 
 /*
 export default function PrivacyPolicyPage() {
