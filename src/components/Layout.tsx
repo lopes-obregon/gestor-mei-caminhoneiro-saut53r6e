@@ -432,13 +432,21 @@ export default function Layout() {
           <NavLinks />
         </nav>
         <div className="p-4 border-t">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-muted-foreground"
-            onClick={signOut}
-          >
-            <LogOut className="h-4 w-4 mr-2" /> Sair
-          </Button>
+          <div className="space-y-1">
+            <Link
+              to="/politica-de-privacidade"
+              className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-foreground rounded-lg transition-colors hover:bg-muted"
+            >
+              <ShieldCheck className="h-4 w-4" /> Política de Privacidade
+            </Link>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-muted-foreground"
+              onClick={signOut}
+            >
+              <LogOut className="h-4 w-4 mr-2" /> Sair
+            </Button>
+          </div>
         </div>
       </aside>
 

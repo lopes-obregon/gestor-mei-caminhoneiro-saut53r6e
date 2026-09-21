@@ -404,7 +404,16 @@ export default function Login() {
                         }}
                       >
                         Termos de Uso
-                      </button>
+                      </button>{' '}
+                      e a{' '}
+                      <Link
+                        to="/politica-de-privacidade"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Política de Privacidade
+                      </Link>
                     </label>
                   </div>
                 </div>
