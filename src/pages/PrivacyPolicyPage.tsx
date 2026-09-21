@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage()
     return (
     <div>
         <article className="legal-content">
-            <p>Testando a Rota</p>
+           
             <p className="eyebrow">{metadata.companyName}</p><h1>Política de Privacidade</h1><p className="legal-updated">Última atualização: {updatedAt}</p>
             <p>Esta Política de Privacidade explica como a {metadata.companyName} trata dados pessoais no contexto do Gestor Caminhoneiro e de seus canais de atendimento e relacionamento comercial.</p>
             <h2>1. Dados que podemos tratar</h2><p>Podemos tratar informações fornecidas por você em conversas, como nome, identificador do perfil, conteúdo de mensagens e dados necessários para atender sua solicitação. Também podemos usar informações públicas disponibilizadas no perfil profissional, como nome de usuário, biografia e localização informada no perfil.</p>
